@@ -1,0 +1,8 @@
+.agents/
+.git/
+*.zip
+*.log
+test.pdf
+aeroeve_1.pdf
+annotated.pdf
+test_draw.html
