@@ -8,14 +8,11 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## ✨ Features
 
-* **🔒 100% Offline & Private:** Built with bundled dependencies (`pdf.js` and `pdf-lib`). Your documents never leave your browser.
-* **🚀 Memory Efficient:** Utilizes `IntersectionObserver` to only render PDF pages currently visible on screen. Off-screen canvases are dynamically destroyed to free up GPU and RAM.
-* **🔀 Local File Interception:** Drag and drop any `.pdf` directly into Chrome, and it will automatically be routed to the custom high-performance workspace.
-* **🖊️ Freehand Drawing:** Native Canvas path recording translates directly into true bezier SVG vectors in the exported PDF Document.
-* **📝 Text Injection:** Native HTML5 `contenteditable` overlays allow you to type directly onto the page.
-* **🎨 Customization:** Full HTML5 color pickers and size controls for both the text and drawing tools.
-* **🌙 Dark Mode:** A stunning, pure-black OLED-friendly dark mode interface.
-* **💾 "Save As" Export:** All annotations are burned directly into the raw PDF binary for universal compatibility with all major PDF viewers.
+* **🔒 100% Offline & Private:** Built natively with the official Mozilla `pdf.js` distribution. Your documents never leave your browser.
+* **🔀 Local File Interception:** Drag and drop any `.pdf` directly into Chrome, and it will automatically be routed to the native workspace without CORS errors.
+* **🖊️ Rich Annotation Tools:** Use built-in PDF.js tools for freehand ink drawing, erasing, adding signatures, and injecting text natively.
+* **🌙 Robust UI:** Leverages the powerful PDF.js viewer interface for universally consistent document viewing, including thumbnails, search, and outlines.
+* **💾 Save and Export:** All annotations—ink, signatures, and texts—are saved directly into the PDF via standard download.
 
 ## 🛠️ Installation (Developer Mode)
 
@@ -27,11 +24,9 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 🚀 Usage
 
-* **Open a file:** Click the `Open PDF` button in the toolbar, or drag and drop a PDF file from your computer directly into a new browser tab.
-* **Add Text:** Select the `Type Text` tool, pick a color and text size, and click anywhere on the document to start typing.
-* **Draw freehand:** Select the `Draw` tool, pick a brush thickness and color, and draw natively on the page.
-* **Save your work:** Click the `Save PDF` button to permanently burn your annotations into the file and download it.
-* **Print:** Use the `Print` button for a clean, UI-free hard copy of your document.
+* **Open a file:** Click the extension icon or navigate to a PDF, or simply drag and drop a local PDF file directly into a new browser tab.
+* **Annotate:** Click the drawing or text annotation tools in the top right toolbar to draw ink, add text, or place signatures directly on the document.
+* **Save your work:** Click the download or print buttons to save your marked-up file natively.
 
 ## 📦 Building for Release
 
