@@ -10,8 +10,11 @@ let drawnPaths = []; // [{ pageNum, color, size, points: [[pdfX, pdfY], ...] }]
 let isAddingText = false;
 let isDrawingMode = false;
 let currentPdfBytes = null;
+let deletedPages = new Set();
+let originalFileName = "annotated.pdf";
 
 // DOM Elements
+const sidebarContainer = document.getElementById('sidebar-container');
 const fileUpload = document.getElementById('file-upload');
 const emptyState = document.getElementById('empty-state');
 const viewerContainer = document.getElementById('viewer-container');
@@ -62,9 +65,12 @@ async function loadPdfFromBytes(bytes) {
         pageWrappers = [];
         annotations = [];
         drawnPaths = [];
+        deletedPages.clear();
+        sidebarContainer.innerHTML = '';
     }
 
     emptyState.style.display = 'none';
+    sidebarContainer.style.display = 'flex';
     toolsPanel.style.display = 'flex';
     actionsPanel.style.display = 'flex';
     viewerContainer.style.display = 'block';
@@ -76,9 +82,11 @@ async function loadPdfFromBytes(bytes) {
         pageCountSpan.textContent = pdfDoc.numPages;
         pageNumSpan.textContent = 1;
 
-        // Create page placeholders
+        // Create page placeholders and thumbnails
         for (let i = 1; i <= pdfDoc.numPages; i++) {
             await createPagePlaceholder(i);
+            const page = await pdfDoc.getPage(i);
+            await createThumbnail(page, i);
         }
     } catch (error) {
         console.error('Error loading PDF:', error);
@@ -90,6 +98,7 @@ async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    originalFileName = file.name;
     const arrayBuffer = await file.arrayBuffer();
     currentPdfBytes = new Uint8Array(arrayBuffer); // Keep original bytes for saving later
 
@@ -103,6 +112,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (fileUrl) {
         try {
+            const urlParts = fileUrl.split('/');
+            let name = urlParts[urlParts.length - 1];
+            try { name = decodeURIComponent(name); } catch (e) { }
+            if (!name.endsWith('.pdf')) name += '.pdf';
+            originalFileName = name;
+
             const response = await fetch(fileUrl);
             if (!response.ok) throw new Error("Network response was not ok");
             const arrayBuffer = await response.arrayBuffer();
@@ -150,6 +165,67 @@ async function createPagePlaceholder(pageNum) {
     observer.observe(wrapper);
 
     setupDrawingEvents(drawingLayer, wrapper, pageNum);
+}
+
+async function createThumbnail(page, pageNum) {
+    const viewport = page.getViewport({ scale: 0.25 });
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'thumbnail-wrapper';
+    if (pageNum === 1) wrapper.classList.add('active');
+    wrapper.dataset.pageNum = pageNum;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'thumbnail-canvas';
+
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = viewport.width * pixelRatio;
+    canvas.height = viewport.height * pixelRatio;
+    wrapper.appendChild(canvas);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove-page';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.title = 'Remove Page';
+    removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removePage(pageNum, wrapper);
+    };
+    wrapper.appendChild(removeBtn);
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(pixelRatio, pixelRatio);
+
+    page.render({
+        canvasContext: ctx,
+        viewport: viewport
+    });
+
+    wrapper.onclick = () => {
+        document.querySelectorAll('.thumbnail-wrapper').forEach(el => el.classList.remove('active'));
+        wrapper.classList.add('active');
+        const pageElem = document.querySelector(`.pdf-page-wrapper[data-page-num="${pageNum}"]`);
+        if (pageElem) {
+            pageElem.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    sidebarContainer.appendChild(wrapper);
+}
+
+function removePage(pageNum, thumbWrapper) {
+    if (!confirm('Are you sure you want to remove this page?')) return;
+
+    deletedPages.add(pageNum);
+    thumbWrapper.remove();
+
+    const pageWrapper = document.querySelector(`.pdf-page-wrapper[data-page-num="${pageNum}"]`);
+    if (pageWrapper) {
+        cleanOffscreenContext(pageWrapper);
+        pageWrapper.remove();
+    }
+
+    pageCountSpan.textContent = parseInt(pageCountSpan.textContent) - 1;
 }
 
 function setupDrawingEvents(drawingLayer, wrapper, pageNum) {
@@ -254,14 +330,21 @@ async function renderPageContext(wrapper, pageNum) {
 
     const canvas = document.createElement('canvas');
     canvas.className = 'pdf-page-canvas';
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = viewport.width * pixelRatio;
+    canvas.height = viewport.height * pixelRatio;
+    canvas.style.width = `${viewport.width}px`;
+    canvas.style.height = `${viewport.height}px`;
 
     // Insert behind annotation layer
     wrapper.insertBefore(canvas, wrapper.firstChild);
 
+    const canvasContext = canvas.getContext('2d');
+    canvasContext.scale(pixelRatio, pixelRatio);
+
     const renderContext = {
-        canvasContext: canvas.getContext('2d'),
+        canvasContext: canvasContext,
         viewport: viewport
     };
 
@@ -440,8 +523,15 @@ viewerContainer.addEventListener('scroll', () => {
     for (let i = 0; i < pageWrappers.length; i++) {
         const top = pageWrappers[i].wrapper.offsetTop;
         const h = pageWrappers[i].wrapper.offsetHeight;
+
+        // Skip deleted pages
+        if (deletedPages.has(i + 1)) continue;
+
         if (centerLine >= top && centerLine <= top + h) {
             pageNumSpan.textContent = i + 1;
+            document.querySelectorAll('.thumbnail-wrapper').forEach(el => el.classList.remove('active'));
+            const thumb = document.querySelector(`.thumbnail-wrapper[data-page-num="${i + 1}"]`);
+            if (thumb) thumb.classList.add('active');
             break;
         }
     }
@@ -451,8 +541,11 @@ viewerContainer.addEventListener('scroll', () => {
 async function savePdf() {
     if (!currentPdfBytes) return;
 
-    const fileName = prompt("Enter a name for the saved PDF:", "annotated.pdf");
-    if (!fileName) return; // User cancelled
+    let baseName = originalFileName.replace(/_edited\.pdf$/i, '.pdf');
+    if (baseName.toLowerCase().endsWith('.pdf')) {
+        baseName = baseName.substring(0, baseName.length - 4);
+    }
+    const fileName = `${baseName}_edited.pdf`;
 
     try {
         document.getElementById('btn-save').textContent = 'Saving...';
@@ -464,7 +557,7 @@ async function savePdf() {
 
         // Apply text annotations
         for (const ann of annotations) {
-            if (!ann.text) continue;
+            if (!ann.text || deletedPages.has(ann.pageNum)) continue;
 
             const page = pages[ann.pageNum - 1];
             const { height } = page.getSize();
@@ -482,7 +575,7 @@ async function savePdf() {
 
         // Apply drawn paths
         for (const p of drawnPaths) {
-            if (p.points.length < 2) continue;
+            if (p.points.length < 2 || deletedPages.has(p.pageNum)) continue;
             const page = pages[p.pageNum - 1];
             const { height } = page.getSize();
 
@@ -498,6 +591,14 @@ async function savePdf() {
                     color: hexToRgb(p.color),
                     thickness: p.size,
                 });
+            }
+        }
+
+        // Remove deleted pages (iterate backwards to preserve indices)
+        const totalPages = pdfDocMod.getPageCount();
+        for (let i = totalPages - 1; i >= 0; i--) {
+            if (deletedPages.has(i + 1)) {
+                pdfDocMod.removePage(i);
             }
         }
 

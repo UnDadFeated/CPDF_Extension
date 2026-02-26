@@ -1,8 +1,8 @@
 @echo off
-echo Building Lite PDF Annotator v1.4 for release...
+echo Building Lite PDF Annotator v1.5 for release...
 
 :: Define output filename
-set OUTPUT_ZIP=Lite_PDF_Annotator_v1.4.zip
+set OUTPUT_ZIP=Lite_PDF_Annotator_v1.5.zip
 
 :: Remove old zip if it exists
 if exist "%OUTPUT_ZIP%" del "%OUTPUT_ZIP%"
