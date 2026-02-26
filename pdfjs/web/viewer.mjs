@@ -19358,19 +19358,30 @@ function webViewerLoad() {
   }
   PDFViewerApplication.run(config);
 
-  // Custom logic for PDF Extension field detection + default color overrides
+  // Custom logic for PDF Extension: color overrides, rotate button, field detection
   PDFViewerApplication.initializedPromise.then(() => {
-    // Set default annotation colors to blue (#0000ff)
     const _eventBus = PDFViewerApplication.eventBus;
-    const _dispatchColor = (typeStr, color) => {
-      _eventBus.dispatch("switchannotationeditorparams", {
-        source: PDFViewerApplication,
-        type: AnnotationEditorParamsType[typeStr],
-        value: color
+
+    // Set default annotation colors to blue on document load (after editors init)
+    _eventBus.on("documentloaded", function _setBlueDefaults() {
+      const _dispatchColor = (typeStr, color) => {
+        _eventBus.dispatch("switchannotationeditorparams", {
+          source: PDFViewerApplication,
+          type: AnnotationEditorParamsType[typeStr],
+          value: color
+        });
+      };
+      _dispatchColor("FREETEXT_COLOR", "#0000ff");
+      _dispatchColor("INK_COLOR", "#0000ff");
+    });
+
+    // Wire the toolbar rotate CW button
+    const rotateCwToolbar = document.getElementById("pageRotateCwToolbar");
+    if (rotateCwToolbar) {
+      rotateCwToolbar.addEventListener("click", () => {
+        _eventBus.dispatch("rotatecw", { source: PDFViewerApplication });
       });
-    };
-    _dispatchColor("FREETEXT_COLOR", "#0000ff");
-    _dispatchColor("INK_COLOR", "#0000ff");
+    }
 
     let checkEditableTimeout = null;
 

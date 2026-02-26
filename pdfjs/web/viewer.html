@@ -259,6 +259,11 @@ See https://github.com/adobe-type-tools/cmap-resources
                   data-l10n-id="pdfjs-zoom-in-button">
                   <span data-l10n-id="pdfjs-zoom-in-button-label"></span>
                 </button>
+                <div class="splitToolbarButtonSeparator"></div>
+                <button id="pageRotateCwToolbar" class="toolbarButton" type="button" tabindex="0"
+                  data-l10n-id="pdfjs-page-rotate-cw-button">
+                  <span data-l10n-id="pdfjs-page-rotate-cw-button-label"></span>
+                </button>
               </div>
               <span id="scaleSelectContainer" class="dropdownToolbarButton">
                 <select id="scaleSelect" tabindex="0" data-l10n-id="pdfjs-zoom-select">
@@ -313,20 +318,56 @@ See https://github.com/adobe-type-tools/cmap-resources
                     </div>
                   </div>
                 </div>
-                <div id="editorSignature" class="toolbarButtonWithContainer" hidden="true">
-                  <button id="editorSignatureButton" class="toolbarButton" type="button" tabindex="0"
-                    disabled="disabled" aria-expanded="false" aria-haspopup="true"
-                    aria-controls="editorSignatureParamsToolbar" data-l10n-id="pdfjs-editor-signature-button">
-                    <span data-l10n-id="pdfjs-editor-signature-button-label"></span>
+                <!-- Reordered: Draw, Text, Highlight, Signature, Add Photo -->
+                <div id="editorInk" class="toolbarButtonWithContainer">
+                  <button id="editorInkButton" class="toolbarButton" type="button" disabled="disabled"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="editorInkParamsToolbar" tabindex="0"
+                    data-l10n-id="pdfjs-editor-ink-button">
+                    <span data-l10n-id="pdfjs-editor-ink-button-label"></span>
                   </button>
-                  <div class="editorParamsToolbar hidden doorHangerRight menu" id="editorSignatureParamsToolbar">
-                    <div id="addSignatureDoorHanger" class="menuContainer" role="region"
-                      data-l10n-id="pdfjs-editor-add-signature-container">
-                      <button id="editorSignatureAddSignature" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-editor-signature-add-signature-button">
-                        <span data-l10n-id="pdfjs-editor-signature-add-signature-button-label"
-                          class="editorParamsLabel"></span>
-                      </button>
+                  <div class="editorParamsToolbar hidden doorHangerRight" id="editorInkParamsToolbar">
+                    <div class="editorParamsToolbarContainer">
+                      <div class="editorParamsSetter">
+                        <label for="editorInkColor" class="editorParamsLabel"
+                          data-l10n-id="pdfjs-editor-ink-color-input"></label>
+                        <input type="color" id="editorInkColor" class="editorParamsColor" tabindex="0"
+                          value="#0000ff" />
+                      </div>
+                      <div class="editorParamsSetter">
+                        <label for="editorInkThickness" class="editorParamsLabel"
+                          data-l10n-id="pdfjs-editor-ink-thickness-input"></label>
+                        <input type="range" id="editorInkThickness" class="editorParamsSlider" value="1" min="1"
+                          max="20" step="1" tabindex="0" />
+                      </div>
+                      <div class="editorParamsSetter">
+                        <label for="editorInkOpacity" class="editorParamsLabel"
+                          data-l10n-id="pdfjs-editor-ink-opacity-input"></label>
+                        <input type="range" id="editorInkOpacity" class="editorParamsSlider" value="1" min="0.05"
+                          max="1" step="0.05" tabindex="0" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="editorFreeText" class="toolbarButtonWithContainer">
+                  <button id="editorFreeTextButton" class="toolbarButton" type="button" disabled="disabled"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="editorFreeTextParamsToolbar" tabindex="0"
+                    data-l10n-id="pdfjs-editor-free-text-button">
+                    <span data-l10n-id="pdfjs-editor-free-text-button-label"></span>
+                  </button>
+                  <div class="editorParamsToolbar hidden doorHangerRight" id="editorFreeTextParamsToolbar">
+                    <div class="editorParamsToolbarContainer">
+                      <div class="editorParamsSetter">
+                        <label for="editorFreeTextColor" class="editorParamsLabel"
+                          data-l10n-id="pdfjs-editor-free-text-color-input"></label>
+                        <input type="color" id="editorFreeTextColor" class="editorParamsColor" tabindex="0"
+                          value="#0000ff" />
+                      </div>
+                      <div class="editorParamsSetter">
+                        <label for="editorFreeTextFontSize" class="editorParamsLabel"
+                          data-l10n-id="pdfjs-editor-free-text-size-input"></label>
+                        <input type="range" id="editorFreeTextFontSize" class="editorParamsSlider" value="10" min="5"
+                          max="100" step="1" tabindex="0" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -364,55 +405,20 @@ See https://github.com/adobe-type-tools/cmap-resources
                     </div>
                   </div>
                 </div>
-                <div id="editorFreeText" class="toolbarButtonWithContainer">
-                  <button id="editorFreeTextButton" class="toolbarButton" type="button" disabled="disabled"
-                    aria-expanded="false" aria-haspopup="true" aria-controls="editorFreeTextParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-free-text-button">
-                    <span data-l10n-id="pdfjs-editor-free-text-button-label"></span>
+                <div id="editorSignature" class="toolbarButtonWithContainer" hidden="true">
+                  <button id="editorSignatureButton" class="toolbarButton" type="button" tabindex="0"
+                    disabled="disabled" aria-expanded="false" aria-haspopup="true"
+                    aria-controls="editorSignatureParamsToolbar" data-l10n-id="pdfjs-editor-signature-button">
+                    <span data-l10n-id="pdfjs-editor-signature-button-label"></span>
                   </button>
-                  <div class="editorParamsToolbar hidden doorHangerRight" id="editorFreeTextParamsToolbar">
-                    <div class="editorParamsToolbarContainer">
-                      <div class="editorParamsSetter">
-                        <label for="editorFreeTextColor" class="editorParamsLabel"
-                          data-l10n-id="pdfjs-editor-free-text-color-input"></label>
-                        <input type="color" id="editorFreeTextColor" class="editorParamsColor" tabindex="0"
-                          value="#00008b" />
-                      </div>
-                      <div class="editorParamsSetter">
-                        <label for="editorFreeTextFontSize" class="editorParamsLabel"
-                          data-l10n-id="pdfjs-editor-free-text-size-input"></label>
-                        <input type="range" id="editorFreeTextFontSize" class="editorParamsSlider" value="10" min="5"
-                          max="100" step="1" tabindex="0" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="editorInk" class="toolbarButtonWithContainer">
-                  <button id="editorInkButton" class="toolbarButton" type="button" disabled="disabled"
-                    aria-expanded="false" aria-haspopup="true" aria-controls="editorInkParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-ink-button">
-                    <span data-l10n-id="pdfjs-editor-ink-button-label"></span>
-                  </button>
-                  <div class="editorParamsToolbar hidden doorHangerRight" id="editorInkParamsToolbar">
-                    <div class="editorParamsToolbarContainer">
-                      <div class="editorParamsSetter">
-                        <label for="editorInkColor" class="editorParamsLabel"
-                          data-l10n-id="pdfjs-editor-ink-color-input"></label>
-                        <input type="color" id="editorInkColor" class="editorParamsColor" tabindex="0"
-                          value="#00008b" />
-                      </div>
-                      <div class="editorParamsSetter">
-                        <label for="editorInkThickness" class="editorParamsLabel"
-                          data-l10n-id="pdfjs-editor-ink-thickness-input"></label>
-                        <input type="range" id="editorInkThickness" class="editorParamsSlider" value="1" min="1"
-                          max="20" step="1" tabindex="0" />
-                      </div>
-                      <div class="editorParamsSetter">
-                        <label for="editorInkOpacity" class="editorParamsLabel"
-                          data-l10n-id="pdfjs-editor-ink-opacity-input"></label>
-                        <input type="range" id="editorInkOpacity" class="editorParamsSlider" value="1" min="0.05"
-                          max="1" step="0.05" tabindex="0" />
-                      </div>
+                  <div class="editorParamsToolbar hidden doorHangerRight menu" id="editorSignatureParamsToolbar">
+                    <div id="addSignatureDoorHanger" class="menuContainer" role="region"
+                      data-l10n-id="pdfjs-editor-add-signature-container">
+                      <button id="editorSignatureAddSignature" class="toolbarButton labeled" type="button" tabindex="0"
+                        data-l10n-id="pdfjs-editor-signature-add-signature-button">
+                        <span data-l10n-id="pdfjs-editor-signature-add-signature-button-label"
+                          class="editorParamsLabel"></span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -445,6 +451,15 @@ See https://github.com/adobe-type-tools/cmap-resources
                   data-l10n-id="pdfjs-save-button">
                   <span data-l10n-id="pdfjs-save-button-label"></span>
                 </button>
+              </div>
+
+              <div class="verticalToolbarSeparator hiddenMediumView"></div>
+
+              <div class="toolbarHorizontalGroup hiddenMediumView">
+                <a id="aboutButton" class="toolbarButton" href="https://github.com/UnDadFeated/Freedom_PDF_Viewer"
+                  target="_blank" rel="noopener noreferrer" tabindex="0" title="About Freedom PDF Viewer">
+                  <span>ℹ</span>
+                </a>
               </div>
 
               <div class="verticalToolbarSeparator hiddenMediumView"></div>
