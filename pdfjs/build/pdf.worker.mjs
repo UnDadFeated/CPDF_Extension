@@ -36,11 +36,11 @@
 /******/ 			if (__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
 /******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
         /******/
-}
+      }
       /******/
-}
+    }
     /******/
-};
+  };
   /******/
 })();
 /******/
@@ -37124,24 +37124,25 @@ function isWhitespaceString(s) {
 }
 class XMLParserBase {
   _resolveEntities(s) {
-    // CodeQL Fix: Prevent double unescaping / double resolving
-    return s.replaceAll(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (all, entity) => {
-      if (entity.startsWith("#x")) {
-        return String.fromCodePoint(parseInt(entity.substring(2), 16));
-      } else if (entity.startsWith("#")) {
-        return String.fromCodePoint(parseInt(entity.substring(1), 10));
+    // CodeQL Fix: Safely parse known valid HTML entities to avoid double unescaping or RangeErrors
+    return s.replaceAll(/&(#x?[0-9a-fA-F]+|lt|gt|amp|quot|apos);/g, (all, entity) => {
+      try {
+        if (entity.startsWith("#x")) {
+          const num = parseInt(entity.substring(2), 16);
+          return isNaN(num) ? all : String.fromCodePoint(num);
+        } else if (entity.startsWith("#")) {
+          const num = parseInt(entity.substring(1), 10);
+          return isNaN(num) ? all : String.fromCodePoint(num);
+        }
+      } catch (e) {
+        return all;
       }
       switch (entity) {
-        case "lt":
-          return "<";
-        case "gt":
-          return ">";
-        case "amp":
-          return "&";
-        case "quot":
-          return '"';
-        case "apos":
-          return "'";
+        case "lt": return "<";
+        case "gt": return ">";
+        case "amp": return "&";
+        case "quot": return '"';
+        case "apos": return "'";
       }
       return this.onResolveEntity(entity);
     });

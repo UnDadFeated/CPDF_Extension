@@ -9367,10 +9367,10 @@ class PDFScriptingManager {
     if (!id) {
       switch (command) {
         case "clear":
-          console.clear();
+          // console.clear();
           break;
         case "error":
-          console.error(value);
+          // console.error(value);
           break;
         case "layout":
           if (!isInPresentationMode) {
