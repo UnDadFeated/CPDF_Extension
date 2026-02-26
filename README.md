@@ -1,6 +1,6 @@
-# Lite PDF Annotator v1.3
+# Freedom PDF Viewer v1.7
 
-![Version](https://img.shields.io/badge/version-1.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -35,7 +35,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 📦 Building for Release
 
-To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Lite_PDF_Annotator_v1.3.zip`, deliberately excluding development files like `.git`.
+To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Freedom_PDF_Viewer_v1.7.zip`, deliberately excluding development files like `.git`.
 
 ## 🤝 Contributing
 
