@@ -36,11 +36,11 @@
 /******/ 			if (__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
 /******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
         /******/
-}
+      }
       /******/
-}
+    }
     /******/
-};
+  };
   /******/
 })();
 /******/
@@ -792,7 +792,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   enableSignatureEditor: {
-    value: false,
+    value: true,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   enableSplitMerge: {
@@ -19357,7 +19357,77 @@ function webViewerLoad() {
     document.dispatchEvent(event);
   }
   PDFViewerApplication.run(config);
+
+  // Custom logic for PDF Extension field detection + default color overrides
+  PDFViewerApplication.initializedPromise.then(() => {
+    // Set default annotation colors to blue (#0000ff)
+    const _eventBus = PDFViewerApplication.eventBus;
+    const _dispatchColor = (typeStr, color) => {
+      _eventBus.dispatch("switchannotationeditorparams", {
+        source: PDFViewerApplication,
+        type: AnnotationEditorParamsType[typeStr],
+        value: color
+      });
+    };
+    _dispatchColor("FREETEXT_COLOR", "#0000ff");
+    _dispatchColor("INK_COLOR", "#0000ff");
+
+    let checkEditableTimeout = null;
+
+    const checkDocumentEditable = async function () {
+      try {
+        const _pdfDocument = PDFViewerApplication.pdfDocument;
+        if (!_pdfDocument) return;
+
+        let isEditable = false;
+
+        // Check for XFA forms
+        const hasXfa = await _pdfDocument.hasJSActions; // XFA has JS actions implicitly handled by pdf.js or XFA data natively
+        const isPureXfa = _pdfDocument.isPureXfa;
+        if (hasXfa || isPureXfa) {
+          isEditable = true;
+        }
+
+        // Loop through pages and check for widget annotations (AcroForms)
+        if (!isEditable) {
+          const numPages = _pdfDocument.numPages;
+          for (let i = 1; i <= numPages; i++) {
+            // Memory safe: getting the page but not keeping strong references outside the loop scope
+            const page = await _pdfDocument.getPage(i);
+            const annotations = await page.getAnnotations();
+            if (annotations.some(a => a.subtype === "Widget")) {
+              isEditable = true;
+              break;
+            }
+          }
+        }
+
+        if (isEditable) {
+          console.log("Freedom PDF Viewer: Editable PDF (Forms/XFA) detected.");
+          // Brief visual toast using pdf.js alert or custom div
+          let alertBox = document.getElementById("viewer-alert");
+          if (alertBox) {
+            alertBox.textContent = "Editable PDF detected: Form fields are active.";
+            alertBox.className = ""; // Remove visuallyHidden
+
+            if (checkEditableTimeout) {
+              clearTimeout(checkEditableTimeout);
+            }
+            checkEditableTimeout = setTimeout(() => {
+              alertBox.className = "visuallyHidden";
+              checkEditableTimeout = null;
+            }, 4000);
+          }
+        }
+      } catch (e) {
+        console.error("Error detecting editable fields:", e);
+      }
+    };
+
+    PDFViewerApplication.eventBus.on("documentloaded", checkDocumentEditable);
+  });
 }
+
 document.blockUnblockOnload?.(true);
 if (document.readyState === "interactive" || document.readyState === "complete") {
   webViewerLoad();
