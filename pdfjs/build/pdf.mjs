@@ -26,25 +26,30 @@
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
-/******/ 
+/******/
 /************************************************************************/
 /******/ /* webpack/runtime/define property getters */
 /******/ (() => {
 /******/ 	// define getter functions for harmony exports
 /******/ 	__webpack_require__.d = (exports, definition) => {
-/******/ 		for(var key in definition) {
-/******/ 			if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 		for (var key in definition) {
+/******/ 			if (__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
 /******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 			}
-/******/ 		}
-/******/ 	};
-/******/ })();
-/******/ 
+        /******/
+}
+      /******/
+}
+    /******/
+};
+  /******/
+})();
+/******/
 /******/ /* webpack/runtime/hasOwnProperty shorthand */
 /******/ (() => {
 /******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ })();
-/******/ 
+  /******/
+})();
+/******/
 /************************************************************************/
 var __webpack_exports__ = {};
 
@@ -391,7 +396,7 @@ function createValidAbsoluteUrl(url, baseUrl = null, options = null) {
     if (options.tryConvertEncoding) {
       try {
         url = stringToUTF8String(url);
-      } catch {}
+      } catch { }
     }
   }
   const absoluteUrl = baseUrl ? URL.parse(url, baseUrl) : URL.parse(url);
@@ -797,7 +802,7 @@ function stringToPDFString(str, keepEscapeSequence = false) {
   for (let i = 0, ii = str.length; i < ii; i++) {
     const charCode = str.charCodeAt(i);
     if (!keepEscapeSequence && charCode === 0x1b) {
-      while (++i < ii && str.charCodeAt(i) !== 0x1b) {}
+      while (++i < ii && str.charCodeAt(i) !== 0x1b) { }
       continue;
     }
     const code = PDFStringTranslateTable[charCode];
@@ -3912,7 +3917,7 @@ class AnnotationEditorUIManager {
   }
   get #lastSelectedEditor() {
     let ed = null;
-    for (ed of this.#selectedEditors) {}
+    for (ed of this.#selectedEditors) { }
     return ed;
   }
   updateUI(editor) {
@@ -4877,7 +4882,7 @@ class Comment {
     this.#date = null;
     this.#richText = richText;
   }
-  shown() {}
+  shown() { }
   destroy() {
     this.#commentToolbarButton?.remove();
     this.#commentToolbarButton = null;
@@ -5217,7 +5222,7 @@ class AnnotationEditor {
     const style = getComputedStyle(document.documentElement);
     AnnotationEditor._borderLineWidth = parseFloat(style.getPropertyValue("--outline-width")) || 0;
   }
-  static updateDefaultParams(_type, _value) {}
+  static updateDefaultParams(_type, _value) { }
   static get defaultPropertiesToUpdate() {
     return [];
   }
@@ -5397,8 +5402,8 @@ class AnnotationEditor {
       block: "nearest"
     });
   }
-  _onTranslating(x, y) {}
-  _onTranslated(x, y) {}
+  _onTranslating(x, y) { }
+  _onTranslated(x, y) { }
   get _hasBeenMoved() {
     return !!this.#initialRect && (this.#initialRect[0] !== this.x || this.#initialRect[1] !== this.y);
   }
@@ -5619,7 +5624,7 @@ class AnnotationEditor {
     this.fixAndSetPosition();
     this._onResized();
   }
-  _onResized() {}
+  _onResized() { }
   #addResizeToUndoStack() {
     if (!this.#savedDimensions) {
       return;
@@ -5749,7 +5754,7 @@ class AnnotationEditor {
     this.fixAndSetPosition();
     this._onResizing();
   }
-  _onResizing() {}
+  _onResizing() { }
   altTextFinish() {
     this.#altText?.finish();
   }
@@ -5943,7 +5948,7 @@ class AnnotationEditor {
     if (this.hasEditedComment) {
       const DEFAULT_POPUP_WIDTH = 180;
       const DEFAULT_POPUP_HEIGHT = 100;
-      const [,,, trY] = serialized.rect;
+      const [, , , trY] = serialized.rect;
       const [pageWidth] = this.pageDimensions;
       const [pageX] = this.pageTranslation;
       const blX = pageX + pageWidth + 1;
@@ -6151,8 +6156,8 @@ class AnnotationEditor {
       signal
     });
   }
-  _onStartDragging() {}
-  _onStopDragging() {}
+  _onStartDragging() { }
+  _onStopDragging() { }
   moveInDOM() {
     if (this.#moveInDOMTimeout) {
       clearTimeout(this.#moveInDOMTimeout);
@@ -6248,7 +6253,7 @@ class AnnotationEditor {
       opacity
     };
   }
-  onceAdded(focus) {}
+  onceAdded(focus) { }
   isEmpty() {
     return false;
   }
@@ -6306,8 +6311,8 @@ class AnnotationEditor {
   rebuild() {
     this.#addFocusListeners();
   }
-  rotate(_angle) {}
-  resize() {}
+  rotate(_angle) { }
+  resize() { }
   serializeDeleted() {
     return {
       id: this.annotationElementId,
@@ -6573,9 +6578,9 @@ class AnnotationEditor {
       this._uiManager.toggleComment(null);
     }
   }
-  updateParams(type, value) {}
-  disableEditing() {}
-  enableEditing() {}
+  updateParams(type, value) { }
+  disableEditing() { }
+  enableEditing() { }
   get canChangeContent() {
     return false;
   }
@@ -8218,7 +8223,7 @@ const StreamKind = {
   PULL_COMPLETE: 7,
   START_COMPLETE: 8
 };
-function onFn() {}
+function onFn() { }
 function wrapReason(ex) {
   if (ex instanceof AbortException || ex instanceof InvalidPDFException || ex instanceof PasswordException || ex instanceof ResponseException || ex instanceof UnknownErrorException) {
     return ex;
@@ -8725,7 +8730,7 @@ class BaseFilterFactory {
   addHighlightHCMFilter(filterName, fgColor, bgColor, newFgColor, newBgColor) {
     return "none";
   }
-  destroy(keepHCM = false) {}
+  destroy(keepHCM = false) { }
 }
 class DOMFilterFactory extends BaseFilterFactory {
   #baseUrl;
@@ -9125,7 +9130,7 @@ async function node_utils_fetchData(url) {
   const data = await fs.promises.readFile(url);
   return new Uint8Array(data);
 }
-class NodeFilterFactory extends BaseFilterFactory {}
+class NodeFilterFactory extends BaseFilterFactory { }
 class NodeCanvasFactory extends BaseCanvasFactory {
   _createCanvas(width, height) {
     const require = process.getBuiltinModule("module").createRequire(import.meta.url);
@@ -11071,8 +11076,8 @@ class CanvasGraphics {
       ctx.lineDashOffset = dashPhase;
     }
   }
-  setRenderingIntent(opIdx, intent) {}
-  setFlatness(opIdx, flatness) {}
+  setRenderingIntent(opIdx, intent) { }
+  setFlatness(opIdx, flatness) { }
   setGState(opIdx, states) {
     for (const [key, value] of states) {
       switch (key) {
@@ -11832,7 +11837,7 @@ class CanvasGraphics {
       this.dependencyTracker = dependencyTracker;
     }
   }
-  setCharWidth(opIdx, xWidth, yWidth) {}
+  setCharWidth(opIdx, xWidth, yWidth) { }
   setCharWidthAndBounds(opIdx, xWidth, yWidth, llx, lly, urx, ury) {
     const clip = new Path2D();
     clip.rect(llx, lly, urx - llx, ury - lly);
@@ -12315,8 +12320,8 @@ class CanvasGraphics {
     this.ctx.fillRect(0, 0, 1, 1);
     this.compose();
   }
-  markPoint(opIdx, tag) {}
-  markPointProps(opIdx, tag, properties) {}
+  markPoint(opIdx, tag) { }
+  markPointProps(opIdx, tag, properties) { }
   beginMarkedContent(opIdx, tag) {
     this.dependencyTracker?.beginMarkedContent(opIdx);
     this.markedContentStack.push({
@@ -12341,8 +12346,8 @@ class CanvasGraphics {
     this.markedContentStack.pop();
     this.contentVisible = this.isContentVisible();
   }
-  beginCompat(opIdx) {}
-  endCompat(opIdx) {}
+  beginCompat(opIdx) { }
+  endCompat(opIdx) { }
   consumePath(opIdx, path, clipBox) {
     const isEmpty = this.current.isEmptyClip();
     if (this.pendingClip) {
@@ -13125,7 +13130,7 @@ function getFilenameFromContentDispositionHeader(contentDisposition) {
         const buffer = stringToBytes(value);
         value = decoder.decode(buffer);
         needsEncodingFixup = false;
-      } catch {}
+      } catch { }
     }
     return value;
   }
@@ -13209,7 +13214,7 @@ function getFilenameFromContentDispositionHeader(contentDisposition) {
       }
       try {
         text = atob(text);
-      } catch {}
+      } catch { }
       return textdecode(charset, text);
     });
   }
@@ -13274,7 +13279,7 @@ function extractFilenameFromHeader(responseHeaders) {
     if (filename.includes("%")) {
       try {
         filename = decodeURIComponent(filename);
-      } catch {}
+      } catch { }
     }
     if (isPdfFile(filename)) {
       return filename;
@@ -14031,7 +14036,7 @@ class TextLayer {
       TextLayer.#pendingTextLayers.delete(this);
       this.#layoutTextParams = null;
       this.#styleCache = null;
-    }).catch(() => {});
+    }).catch(() => { });
   }
   static get fontFamilyMap() {
     const {
@@ -14091,7 +14096,7 @@ class TextLayer {
   }
   cancel() {
     const abortEx = new AbortException("TextLayer task cancelled.");
-    this.#reader?.cancel(abortEx).catch(() => {});
+    this.#reader?.cancel(abortEx).catch(() => { });
     this.#reader = null;
     this.#capability.reject(abortEx);
   }
@@ -14598,7 +14603,7 @@ class PDFDataRangeTransport {
   requestDataRange(begin, end) {
     unreachable("Abstract method PDFDataRangeTransport.requestDataRange");
   }
-  abort() {}
+  abort() { }
 }
 class PDFDocumentProxy {
   constructor(pdfInfo, transport) {
@@ -15155,7 +15160,7 @@ class PDFPageProxy {
         return;
       }
     }
-    intentState.streamReader.cancel(new AbortException(reason.message)).catch(() => {});
+    intentState.streamReader.cancel(new AbortException(reason.message)).catch(() => { });
     intentState.streamReader = null;
     if (this._transport.destroyed) {
       return;
@@ -15243,7 +15248,7 @@ class PDFWorker {
   #initializeFromPort(port) {
     this.#port = port;
     this.#messageHandler = new MessageHandler("main", "worker", port);
-    this.#messageHandler.on("ready", () => {});
+    this.#messageHandler.on("ready", () => { });
     this.#resolve();
   }
   #initialize() {
@@ -15373,9 +15378,9 @@ class PDFWorker {
         return this.#mainThreadWorkerMessageHandler;
       }
       const worker = await import(
-      /*webpackIgnore: true*/
-      /*@vite-ignore*/
-      this.workerSrc);
+        /*webpackIgnore: true*/
+        /*@vite-ignore*/
+        this.workerSrc);
       return worker.WorkerMessageHandler;
     };
     return shadow(this, "_setupFakeWorkerGlobal", loader());
@@ -16016,7 +16021,7 @@ class InternalRenderTask {
     this._operationsFilter = operationsFilter;
   }
   get completed() {
-    return this.capability.promise.catch(function () {});
+    return this.capability.promise.catch(function () { });
   }
   initializeGraphics({
     transparency = false,
@@ -16402,7 +16407,7 @@ class BasicColorPicker {
     this.#input?.remove();
     this.#input = null;
   }
-  hideDropdown() {}
+  hideDropdown() { }
 }
 
 ;// ./src/shared/scripting_utils.js
@@ -18405,7 +18410,7 @@ class ChoiceWidgetAnnotationElement extends WidgetAnnotationElement {
     }
     if (this.data.combo) {
       this._setTextStyle(selectElement);
-    } else {}
+    } else { }
     this._setBackgroundColor(selectElement);
     this._setDefaultPropertiesFromJS(selectElement);
     this.container.append(selectElement);
@@ -19910,7 +19915,7 @@ class FreeTextEditor extends AnnotationEditor {
   _colorPicker = null;
   static _freeTextDefaultContent = "";
   static _internalPadding = 0;
-  static _defaultColor = null;
+  static _defaultColor = "#0000ff"; // Freedom PDF Viewer: default text color (blue)
   static _defaultFontSize = 10;
   static get _keyboardManager() {
     const proto = FreeTextEditor.prototype;
@@ -21444,7 +21449,7 @@ class HighlightEditor extends AnnotationEditor {
         break;
     }
   }
-  translateInPage(x, y) {}
+  translateInPage(x, y) { }
   get toolbarPosition() {
     return this.#lastPoint;
   }
@@ -22498,7 +22503,7 @@ class DrawingEditor extends AnnotationEditor {
     }
     this.#updateBbox(this.#drawOutlines.updateParentDimensions(this.parentDimensions, this.parent.scale));
   }
-  static onScaleChangingWhenDrawing() {}
+  static onScaleChangingWhenDrawing() { }
   render() {
     if (this.div) {
       return this.div;
@@ -22698,7 +22703,7 @@ class DrawingEditor extends AnnotationEditor {
     this._cleanup(true);
     return null;
   }
-  createDrawingOptions(_data) {}
+  createDrawingOptions(_data) { }
   static deserializeDraw(_pageX, _pageY, _pageWidth, _pageHeight, _innerWidth, _data) {
     unreachable("Not implemented");
   }
@@ -23234,7 +23239,7 @@ class InkDrawOutline extends Outline {
     };
   }
   get rotationTransform() {
-    const [,, width, height] = this.#bbox;
+    const [, , width, height] = this.#bbox;
     let a = 0,
       b = 0,
       c = 0,
@@ -23412,7 +23417,7 @@ class InkDrawingOptions extends DrawingOptions {
     this._viewParameters = viewerParameters;
     super.updateProperties({
       fill: "none",
-      stroke: AnnotationEditor._defaultLineColor,
+      stroke: "#0000ff", // Freedom PDF Viewer: default ink/draw color (blue)
       "stroke-opacity": 1,
       "stroke-width": 1,
       "stroke-linecap": "round",
@@ -24204,7 +24209,7 @@ class SignatureExtractor {
       writer.write(bytes).then(async () => {
         await writer.ready;
         await writer.close();
-      }).catch(() => {});
+      }).catch(() => { });
       let data = null;
       let offset = 0;
       for await (const chunk of readable) {
@@ -24728,7 +24733,7 @@ class StampEditor extends AnnotationEditor {
       });
       try {
         this.mlGuessAltText();
-      } catch {}
+      } catch { }
     }
     this.div.focus();
   }

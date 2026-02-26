@@ -259,11 +259,6 @@ See https://github.com/adobe-type-tools/cmap-resources
                   data-l10n-id="pdfjs-zoom-in-button">
                   <span data-l10n-id="pdfjs-zoom-in-button-label"></span>
                 </button>
-                <div class="splitToolbarButtonSeparator"></div>
-                <button id="pageRotateCwToolbar" class="toolbarButton" type="button" tabindex="0"
-                  data-l10n-id="pdfjs-page-rotate-cw-button">
-                  <span data-l10n-id="pdfjs-page-rotate-cw-button-label"></span>
-                </button>
               </div>
               <span id="scaleSelectContainer" class="dropdownToolbarButton">
                 <select id="scaleSelect" tabindex="0" data-l10n-id="pdfjs-zoom-select">
@@ -287,6 +282,11 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <option value="4" data-l10n-id="pdfjs-page-scale-percent" data-l10n-args='{ "scale": 400 }'></option>
                 </select>
               </span>
+              <!-- Freedom PDF Viewer: Rotate CW button (after zoom dropdown) -->
+              <button id="pageRotateCwToolbar" class="toolbarButton" type="button" tabindex="0"
+                data-l10n-id="pdfjs-page-rotate-cw-button" title="Rotate Clockwise">
+                <span data-l10n-id="pdfjs-page-rotate-cw-button-label"></span>
+              </button>
             </div>
             <div id="toolbarViewerRight" class="toolbarHorizontalGroup">
               <div id="editorModeButtons" class="toolbarHorizontalGroup">

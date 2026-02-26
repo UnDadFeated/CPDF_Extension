@@ -19358,84 +19358,83 @@ function webViewerLoad() {
   }
   PDFViewerApplication.run(config);
 
-  // Custom logic for PDF Extension: color overrides, rotate button, field detection
+  // =========================================================================
+  // Freedom PDF Viewer — Custom Extensions
+  // =========================================================================
+  // This block runs after the PDF.js viewer is initialized. It adds:
+  //   1. Toolbar rotate button (clockwise page rotation)
+  //   2. Editable PDF detection (shows a toast when forms are found)
+  //
+  // Note: Default blue color (#0000ff) for text and drawing tools is set
+  // directly in pdf.mjs (FreeTextEditor._defaultColor and InkDrawingOptions).
+  // =========================================================================
+
   PDFViewerApplication.initializedPromise.then(() => {
     const _eventBus = PDFViewerApplication.eventBus;
 
-    // Set default annotation colors to blue on document load (after editors init)
-    _eventBus.on("documentloaded", function _setBlueDefaults() {
-      const _dispatchColor = (typeStr, color) => {
-        _eventBus.dispatch("switchannotationeditorparams", {
-          source: PDFViewerApplication,
-          type: AnnotationEditorParamsType[typeStr],
-          value: color
-        });
-      };
-      _dispatchColor("FREETEXT_COLOR", "#0000ff");
-      _dispatchColor("INK_COLOR", "#0000ff");
-    });
-
-    // Wire the toolbar rotate CW button
-    const rotateCwToolbar = document.getElementById("pageRotateCwToolbar");
-    if (rotateCwToolbar) {
-      rotateCwToolbar.addEventListener("click", () => {
+    // --- Rotate CW toolbar button ---
+    // Wires the custom rotate button (placed after the zoom dropdown)
+    // to the built-in rotatecw event that PDF.js already handles.
+    const rotateCwBtn = document.getElementById("pageRotateCwToolbar");
+    if (rotateCwBtn) {
+      rotateCwBtn.addEventListener("click", () => {
         _eventBus.dispatch("rotatecw", { source: PDFViewerApplication });
       });
     }
 
-    let checkEditableTimeout = null;
+    // --- Editable PDF detection ---
+    // Scans the loaded document for interactive form fields (AcroForm widgets
+    // or XFA forms). If found, shows a brief toast notification to let the
+    // user know the PDF has fillable fields.
+    let toastTimeout = null;
 
-    const checkDocumentEditable = async function () {
+    const detectEditableFields = async function () {
       try {
-        const _pdfDocument = PDFViewerApplication.pdfDocument;
-        if (!_pdfDocument) return;
+        const pdfDoc = PDFViewerApplication.pdfDocument;
+        if (!pdfDoc) return;
 
-        let isEditable = false;
+        let hasFields = false;
 
-        // Check for XFA forms
-        const hasXfa = await _pdfDocument.hasJSActions; // XFA has JS actions implicitly handled by pdf.js or XFA data natively
-        const isPureXfa = _pdfDocument.isPureXfa;
-        if (hasXfa || isPureXfa) {
-          isEditable = true;
+        // Check for XFA-based forms
+        const hasXfa = await pdfDoc.hasJSActions;
+        if (hasXfa || pdfDoc.isPureXfa) {
+          hasFields = true;
         }
 
-        // Loop through pages and check for widget annotations (AcroForms)
-        if (!isEditable) {
-          const numPages = _pdfDocument.numPages;
+        // Check each page for AcroForm widget annotations
+        if (!hasFields) {
+          const numPages = pdfDoc.numPages;
           for (let i = 1; i <= numPages; i++) {
-            // Memory safe: getting the page but not keeping strong references outside the loop scope
-            const page = await _pdfDocument.getPage(i);
+            const page = await pdfDoc.getPage(i);
             const annotations = await page.getAnnotations();
             if (annotations.some(a => a.subtype === "Widget")) {
-              isEditable = true;
+              hasFields = true;
               break;
             }
           }
         }
 
-        if (isEditable) {
+        // Show a brief toast notification if editable fields were found
+        if (hasFields) {
           console.log("Freedom PDF Viewer: Editable PDF (Forms/XFA) detected.");
-          // Brief visual toast using pdf.js alert or custom div
-          let alertBox = document.getElementById("viewer-alert");
+          const alertBox = document.getElementById("viewer-alert");
           if (alertBox) {
             alertBox.textContent = "Editable PDF detected: Form fields are active.";
-            alertBox.className = ""; // Remove visuallyHidden
+            alertBox.className = ""; // Make visible
 
-            if (checkEditableTimeout) {
-              clearTimeout(checkEditableTimeout);
-            }
-            checkEditableTimeout = setTimeout(() => {
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
               alertBox.className = "visuallyHidden";
-              checkEditableTimeout = null;
+              toastTimeout = null;
             }, 4000);
           }
         }
-      } catch (e) {
-        console.error("Error detecting editable fields:", e);
+      } catch (err) {
+        console.error("Freedom PDF Viewer: Error detecting editable fields:", err);
       }
     };
 
-    PDFViewerApplication.eventBus.on("documentloaded", checkDocumentEditable);
+    _eventBus.on("documentloaded", detectEditableFields);
   });
 }
 
