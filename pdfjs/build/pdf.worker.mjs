@@ -37058,7 +37058,7 @@ class FileSpec {
   get filename() {
     const item = pickPlatformItem(this.root);
     if (item && typeof item === "string") {
-      return stringToPDFString(item, true).replaceAll("\\\\", "\\").replaceAll("\\/", "/").replaceAll("\\", "/");
+      return stringToPDFString(item, true).replace(/\\\\([\\/\\\\])/g, "$1").replace(/\\/g, "/");
     }
     return "";
   }
