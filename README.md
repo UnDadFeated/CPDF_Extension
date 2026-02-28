@@ -1,6 +1,6 @@
-# Freedom PDF Viewer Extension (v3.0.6)
+# Freedom PDF Viewer Extension (v3.0.7)
 
-![Version](https://img.shields.io/badge/version-3.0.6-blue.svg)
+![Version](https://img.shields.io/badge/version-3.0.7-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -17,7 +17,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 🚀 Getting Started
 
-1. Download the [Freedom_PDF_Viewer_v3.0.6.zip](link-to-releases) from the Releases page.
+1. Download the [Freedom_PDF_Viewer_v3.0.7.zip](link-to-releases) from the Releases page.
 2. Unzip the file into a folder on your computer.
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **Developer mode** in the top right corner.
@@ -26,7 +26,20 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 📦 Building for Release
 
-To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Freedom_PDF_Viewer_v3.0.6.zip`, deliberately excluding development files like `.git`.
+To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Freedom_PDF_Viewer_v3.0.7.zip`, deliberately excluding development files like `.git`.
+
+## 🔐 Permissions
+
+This extension requests only the minimum permissions necessary:
+
+| Permission | Purpose |
+| --- | --- |
+| `storage` / `unlimitedStorage` | Persist user settings and annotation data locally |
+| `webNavigation` | Detect when a PDF URL is navigated to so it can be intercepted |
+| `tabs` | Open/update a tab to redirect PDF navigation to the viewer |
+| `file:///` (host permission) | Access local `.pdf` files dragged into the browser |
+
+> **Note:** The `activeTab` permission was intentionally removed — it is not required for any current functionality.
 
 ## 🤝 Contributing
 

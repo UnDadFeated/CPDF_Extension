@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Freedom PDF Viewer",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "A modern, memory-efficient PDF reader and annotator. Add text to PDFs and save directly in Chrome.",
   "action": {
     "default_popup": "popup/popup.html"
@@ -13,8 +13,7 @@
     "storage",
     "unlimitedStorage",
     "webNavigation",
-    "tabs",
-    "activeTab"
+    "tabs"
   ],
   "host_permissions": [
     "file:///*"
