@@ -1,6 +1,6 @@
-# Freedom PDF Viewer Extension (v3.1.1)
+# Freedom PDF Viewer Extension (v3.1.3)
 
-![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-3.1.3-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -10,14 +10,14 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 - **🔒 100% Offline & Private:** Built natively with the official Mozilla `pdf.js` distribution. Your documents never leave your browser.
 - **🛡️ Secure Processing:** Includes a strict Content Security Policy (CSP) to isolate processes and intercept validation logic to mitigate malicious injections.
-- **🔀 Local File Interception:** Drag and drop any `.pdf` directly into Chrome, and it will automatically be routed to the native workspace without CORS errors.
+- **🔀 Dedicated Workspace:** Open the extension and drag any `.pdf` directly into the dedicated workspace.
 - **🖊️ Rich Annotation Tools:** Use built-in PDF.js tools for freehand ink drawing, erasing, adding signatures, and injecting text natively.
 - **⚡ Blazing Fast:** Designed to be memory-efficient and open PDFs instantly.
 - **💾 Easy Saving:** Save your annotated PDFs back to your computer with a single click.
 
 ## 🚀 Getting Started
 
-1. Download the [Freedom_PDF_Viewer_v3.0.7.zip](link-to-releases) from the Releases page.
+1. Download the [Freedom_PDF_Viewer_v3.1.3.zip](link-to-releases) from the Releases page.
 2. Unzip the file into a folder on your computer.
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **Developer mode** in the top right corner.
@@ -26,7 +26,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 📦 Building for Release
 
-To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Freedom_PDF_Viewer_v3.0.7.zip`, deliberately excluding development files like `.git`.
+To package the extension for upload to the Chrome Web Store, simply run the included `build.bat` script on Windows. It will securely compress the necessary files into `Freedom_PDF_Viewer_v3.1.3.zip`, deliberately excluding development files like `.git`.
 
 ## 🔐 Permissions
 
@@ -34,12 +34,9 @@ This extension requests only the minimum permissions necessary:
 
 | Permission | Purpose |
 | --- | --- |
-| `storage` / `unlimitedStorage` | Persist user settings and annotation data locally |
-| `webNavigation` | Detect when a PDF URL is navigated to so it can be intercepted |
-| `tabs` | Open/update a tab to redirect PDF navigation to the viewer |
 | `file:///` (host permission) | Access local `.pdf` files dragged into the browser |
 
-> **Note:** The `activeTab` permission was intentionally removed — it is not required for any current functionality.
+> **Note:** The `activeTab`, `storage`, and `webNavigation` permissions were intentionally removed — they are not required for any functionality.
 
 ## 🤝 Contributing
 

@@ -1,6 +1,6 @@
 # Privacy Policy — Freedom PDF Viewer
 
-**Last updated: February 26, 2026**
+**Last updated: March 5, 2026**
 
 ## Overview
 
@@ -19,21 +19,18 @@ Freedom PDF Viewer ("the Extension") is a Chrome extension that allows you to op
 | Data Type | Collected? | Purpose |
 |---|---|---|
 | PDF file contents | ❌ No | Files are processed entirely within your local browser using Mozilla PDF.js |
-| Browsing history | ❌ No | The extension only intercepts navigations to `.pdf` URLs on your machine |
+| Browsing history | ❌ No | None recorded or accessed |
 | Personal information | ❌ No | None required or requested |
 | Cookies | ❌ No | None set or read |
 
 ## Local Storage
 
-The extension uses Chrome's `storage` API solely to persist your viewer preferences (e.g., zoom level, scroll mode) across sessions. This data never leaves your device.
+The extension uses local storage solely to persist your viewer preferences (e.g., zoom level, scroll mode) across sessions within the browser sandbox. This data never leaves your device and requires no special extension API permissions.
 
 ## Permissions Justification
 
 | Permission | Reason |
 |---|---|
-| `storage` / `unlimitedStorage` | Save viewer preferences locally |
-| `webNavigation` | Detect when a `.pdf` URL is navigated to, so it can be opened in the viewer |
-| `tabs` / `activeTab` | Redirect the current tab to the built-in PDF viewer |
 | `host_permissions: file:///*` | Access local PDF files dragged and dropped into Chrome |
 
 ## Third-Party Code
