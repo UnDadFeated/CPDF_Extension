@@ -1,14 +1,14 @@
 @echo off
-echo Building Freedom PDF Viewer v3.1.3 for release...
+echo Building Freedom PDF Viewer v3.1.4 for release...
 
 :: Define output filename
-set OUTPUT_ZIP=Freedom_PDF_Viewer_v3.1.3.zip
+set OUTPUT_ZIP=Freedom_PDF_Viewer_v3.1.4.zip
 
 :: Remove old zip if it exists
 if exist "%OUTPUT_ZIP%" del "%OUTPUT_ZIP%"
 
 :: Create zip archive excluding .git, .agents, and build scripts
-powershell -NoProfile -Command "Compress-Archive -Path 'popup', 'pdfjs', 'manifest.json', 'README.md' -DestinationPath '%OUTPUT_ZIP%' -Force"
+powershell -NoProfile -Command "Compress-Archive -Path 'popup', 'pdfjs', 'manifest.json', 'README.md', 'icons' -DestinationPath '%OUTPUT_ZIP%' -Force"
 
 echo.
 echo Build complete! Successfully created %OUTPUT_ZIP%
