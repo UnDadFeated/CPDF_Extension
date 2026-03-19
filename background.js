@@ -16,12 +16,12 @@ const VIEWER = chrome.runtime.getURL('pdfjs/web/viewer.html');
  * being handled by our viewer.
  */
 function isPdfNavigation(url) {
-  if (!url || url.startsWith(VIEWER)) return false;
+  if (!url || typeof url !== 'string' || url.startsWith(VIEWER)) return false;
   try {
-    const { pathname, href } = new URL(url);
-    // Match paths ending in .pdf (before any query/fragment)
-    return /\.pdf$/i.test(pathname.split('?')[0]);
+    const { pathname } = new URL(url);
+    return pathname.toLowerCase().endsWith('.pdf');
   } catch {
+    // Fallback for malformed URLs
     return /\.pdf($|\?|#)/i.test(url);
   }
 }
@@ -31,7 +31,10 @@ function isPdfNavigation(url) {
  * encoded as the `file` query parameter that PDF.js expects.
  */
 function openInViewer(tabId, url) {
-  const redirectUrl = `${VIEWER}?file=${encodeURIComponent(url)}`;
+  // If the URL has a fragment (e.g. #page=2), keep it outside the 'file' param
+  // so that PDF.js can parse it correctly for its own navigation.
+  const [baseUrl, fragment] = url.split('#');
+  const redirectUrl = `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
   chrome.tabs.update(tabId, { url: redirectUrl });
 }
 

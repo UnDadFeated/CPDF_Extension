@@ -31,7 +31,10 @@ The extension uses local storage solely to persist your viewer preferences (e.g.
 
 | Permission | Reason |
 |---|---|
-| `host_permissions: file:///*` | Access local PDF files dragged and dropped into Chrome |
+| `host_permissions: file:///*` | Access local PDF files opened or dragged into Chrome |
+| `host_permissions: http/https` | Intercept PDF links on web pages to open them in the viewer |
+| `webNavigation` | Detect navigations to PDF files before they reach the default browser renderer |
+| `tabs` | Redirect the browser's current tab to the extension's local viewer |
 
 ## Third-Party Code
 

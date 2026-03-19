@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="3.1.6"
+VERSION="3.1.7"
 OUTPUT_ZIP="Freedom_PDF_Viewer_v${VERSION}.zip"
 
 echo "Building Freedom PDF Viewer v${VERSION} for release..."
@@ -13,11 +13,11 @@ rm -f "$OUTPUT_ZIP"
 python3 - <<'PYEOF'
 import zipfile, os, sys
 
-output = "Freedom_PDF_Viewer_v3.1.6.zip"
+output = "Freedom_PDF_Viewer_v3.1.7.zip"
 include_roots = ["popup", "pdfjs", "icons"]
 include_files = ["manifest.json", "README.md", "PRIVACY.md", "background.js"]
-exclude_exts  = {".pyc"}
-exclude_names = {".DS_Store", ".gitignore"}
+exclude_exts  = {".pyc", ".mjs.map", ".css.map"}
+exclude_names = {".DS_Store", ".gitignore", "debugger.css", "debugger.mjs"}
 
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as zf:
     for root_dir in include_roots:
