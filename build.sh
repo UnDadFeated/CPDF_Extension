@@ -15,7 +15,7 @@ import zipfile, os, sys
 
 output = "Freedom_PDF_Viewer_v3.1.6.zip"
 include_roots = ["popup", "pdfjs", "icons"]
-include_files = ["manifest.json", "README.md", "PRIVACY.md"]
+include_files = ["manifest.json", "README.md", "PRIVACY.md", "background.js"]
 exclude_exts  = {".pyc"}
 exclude_names = {".DS_Store", ".gitignore"}
 

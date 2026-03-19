@@ -14,6 +14,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 - **🖊️ Rich Annotation Tools:** Use built-in PDF.js tools for freehand ink drawing, erasing, adding signatures, and injecting text natively.
 - **⚡ Blazing Fast:** Designed to be memory-efficient and open PDFs instantly.
 - **💾 Easy Saving:** Save your annotated PDFs (with annotations flattened) back to your computer with a single click via the **Save** button, or download the raw file via the **Download** button.
+- **📄 Default PDF Viewer:** Automatically intercepts PDF links (http/https), local file opens, and PDFs dragged and dropped into Chrome — opening them all in the Freedom viewer instead of Chrome's built-in renderer.
 
 ## 🚀 Getting Started
 
@@ -40,9 +41,12 @@ This extension requests only the minimum permissions necessary:
 
 | Permission | Purpose |
 | --- | --- |
-| `file:///` (host permission) | Access local `.pdf` files dragged into the browser |
+| `file:///` (host permission) | Access local `.pdf` files opened or dragged into the browser |
+| `http://*/*`, `https://*/*` (host permissions) | Intercept PDF links on any website |
+| `webNavigation` | Detect navigations to PDF URLs before Chrome's built-in viewer takes over |
+| `tabs` | Redirect the current tab to the Freedom PDF viewer |
 
-> **Note:** The `activeTab`, `storage`, and `webNavigation` permissions were intentionally removed — they are not required for any functionality.
+> **Note:** All permissions are the minimum required. No browsing history, page content, or personal data is collected or transmitted.
 
 ## 🤝 Contributing
 

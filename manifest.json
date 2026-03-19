@@ -16,8 +16,23 @@
       "128": "icons/icon128.png"
     }
   },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "webNavigation",
+    "tabs"
+  ],
   "host_permissions": [
-    "file:///*"
+    "file:///*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pdfjs/web/viewer.html"],
+      "matches": ["<all_urls>"]
+    }
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
