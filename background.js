@@ -7,6 +7,9 @@
  *   • Typing / pasting a PDF URL into the address bar
  *   • Opening a local PDF via File → Open (file://)
  *   • Dragging and dropping a PDF file onto a Chrome tab (file://)
+ *
+ * Embedded PDFs (lazy-loaded iframes, <object>, etc.) must NOT be
+ * redirected — only full-tab navigations to a .pdf URL.
  */
 
 const VIEWER = chrome.runtime.getURL('pdfjs/web/viewer.html');
@@ -27,6 +30,39 @@ function isPdfNavigation(url) {
 }
 
 /**
+ * True only for a user-visible tab navigation to a PDF — not an iframe,
+ * fenced frame, or prerendered document.
+ * Chrome 106+ exposes `frameType`; older builds fall back to frameId/parentFrameId.
+ */
+function isTopLevelUserTabNavigation(details) {
+  if (details.documentLifecycle === 'prerender') {
+    return false;
+  }
+
+  const { frameType, frameId, parentFrameId } = details;
+
+  if (frameType === 'sub_frame' || frameType === 'fenced_frame') {
+    return false;
+  }
+  if (frameType === 'outermost_frame') {
+    return true;
+  }
+
+  // Chrome < 106: frameType may be undefined — use frame hierarchy only
+  if (frameType === undefined) {
+    if (frameId !== 0) {
+      return false;
+    }
+    if (parentFrameId === undefined || parentFrameId === null) {
+      return true;
+    }
+    return parentFrameId === -1;
+  }
+
+  return false;
+}
+
+/**
  * Redirect the tab to our PDF viewer with the original URL
  * encoded as the `file` query parameter that PDF.js expects.
  */
@@ -43,12 +79,14 @@ function openInViewer(tabId, url) {
 // onBeforeNavigate fires early — before Chrome's built-in PDF renderer
 // has a chance to claim the navigation — making it ideal for interception.
 chrome.webNavigation.onBeforeNavigate.addListener(
-  ({ tabId, url, frameId }) => {
-    // Only intercept top-level frames (frameId === 0)
-    if (frameId !== 0) return;
-    if (isPdfNavigation(url)) {
-      openInViewer(tabId, url);
+  (details) => {
+    if (!isPdfNavigation(details.url)) {
+      return;
     }
+    if (!isTopLevelUserTabNavigation(details)) {
+      return;
+    }
+    openInViewer(details.tabId, details.url);
   },
   {
     url: [

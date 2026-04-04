@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="3.1.7"
+VERSION="3.1.9"
 OUTPUT_ZIP="Freedom_PDF_Viewer_v${VERSION}.zip"
 
 echo "Building Freedom PDF Viewer v${VERSION} for release..."
@@ -9,13 +9,16 @@ echo "Building Freedom PDF Viewer v${VERSION} for release..."
 # Remove old zip if it exists
 rm -f "$OUTPUT_ZIP"
 
+export VERSION
 # Use python3 (always available) to create the zip
 python3 - <<'PYEOF'
-import zipfile, os, sys
+import os
+import zipfile
 
-output = "Freedom_PDF_Viewer_v3.1.7.zip"
+version = os.environ["VERSION"]
+output = f"Freedom_PDF_Viewer_v{version}.zip"
 include_roots = ["popup", "pdfjs", "icons"]
-include_files = ["manifest.json", "README.md", "PRIVACY.md", "background.js"]
+include_files = ["manifest.json", "README.md", "PRIVACY.md", "CHANGELOG.md", "background.js"]
 exclude_exts  = {".pyc", ".mjs.map", ".css.map"}
 exclude_names = {".DS_Store", ".gitignore", "debugger.css", "debugger.mjs"}
 

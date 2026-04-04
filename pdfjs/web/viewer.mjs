@@ -15169,8 +15169,8 @@ class SecondaryToolbar {
       eventName: "print",
       close: true
     }, {
-      element: options.downloadButton,
-      eventName: "download",
+      element: options.saveButton,
+      eventName: "save",
       close: true
     }, {
       element: options.viewBookmarkButton,
@@ -16349,6 +16349,9 @@ class Toolbar {
     }, {
       element: options.print,
       eventName: "print"
+    }, {
+      element: options.save,
+      eventName: "save"
     }, {
       element: options.download,
       eventName: "download"
@@ -18338,6 +18341,7 @@ const PDFViewerApplication = {
     eventBus._on("presentationmode", this.requestPresentationMode.bind(this), opts);
     eventBus._on("switchannotationeditormode", evt => pdfViewer.annotationEditorMode = evt, opts);
     eventBus._on("print", this.triggerPrinting.bind(this), opts);
+    eventBus._on("save", this.save.bind(this), opts);
     eventBus._on("download", this.downloadOrSave.bind(this), opts);
     eventBus._on("firstpage", () => this.page = 1, opts);
     eventBus._on("lastpage", () => this.page = this.pagesCount, opts);
@@ -19176,6 +19180,7 @@ function getViewerConfiguration() {
       zoomIn: document.getElementById("zoomInButton"),
       zoomOut: document.getElementById("zoomOutButton"),
       print: document.getElementById("printButton"),
+      save: document.getElementById("saveButton"),
       editorCommentButton: document.getElementById("editorCommentButton"),
       editorCommentParamsToolbar: document.getElementById("editorCommentParamsToolbar"),
       editorFreeTextButton: document.getElementById("editorFreeTextButton"),
@@ -19197,7 +19202,7 @@ function getViewerConfiguration() {
       presentationModeButton: document.getElementById("presentationMode"),
       openFileButton: document.getElementById("secondaryOpenFile"),
       printButton: document.getElementById("secondaryPrint"),
-      downloadButton: document.getElementById("secondaryDownload"),
+      saveButton: document.getElementById("secondarySave"),
       viewBookmarkButton: document.getElementById("viewBookmark"),
       firstPageButton: document.getElementById("firstPage"),
       lastPageButton: document.getElementById("lastPage"),

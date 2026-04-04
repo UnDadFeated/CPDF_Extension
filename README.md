@@ -1,6 +1,6 @@
-# Freedom PDF Viewer Extension (v3.1.7)
+# Freedom PDF Viewer Extension (v3.1.9)
 
-![Version](https://img.shields.io/badge/version-3.1.7-blue.svg)
+![Version](https://img.shields.io/badge/version-3.1.9-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -18,7 +18,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 🚀 Getting Started
 
-1. Download the [Freedom_PDF_Viewer_v3.1.7.zip](https://github.com/UnDadFeated/Freedom_PDF_Viewer/releases) from the Releases page.
+1. Download the [Freedom_PDF_Viewer_v3.1.9.zip](https://github.com/UnDadFeated/Freedom_PDF_Viewer/releases) from the Releases page.
 2. Unzip the file into a folder on your computer.
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **Developer mode** in the top right corner.
@@ -33,7 +33,7 @@ To package the extension for upload to the Chrome Web Store, run the included `b
 chmod +x build.sh && ./build.sh
 ```
 
-It will compress the necessary files into `Freedom_PDF_Viewer_v3.1.7.zip`, deliberately excluding development files like `.git`.
+It will compress the necessary files into `Freedom_PDF_Viewer_v3.1.9.zip`, deliberately excluding development files like `.git`.
 
 ## 🔐 Permissions
 
@@ -43,7 +43,7 @@ This extension requests only the minimum permissions necessary:
 | --- | --- |
 | `file:///` (host permission) | Access local `.pdf` files opened or dragged into the browser |
 | `http://*/*`, `https://*/*` (host permissions) | Intercept PDF links on any website |
-| `webNavigation` | Detect navigations to PDF URLs before Chrome's built-in viewer takes over |
+| `webNavigation` | Detect **full-tab** navigations to PDF URLs (address bar, link opens). Embedded PDFs in iframes are left to the page. |
 | `tabs` | Redirect the current tab to the Freedom PDF viewer |
 
 > **Note:** All permissions are the minimum required. No browsing history, page content, or personal data is collected or transmitted.
