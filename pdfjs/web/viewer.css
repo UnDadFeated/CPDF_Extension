@@ -8625,3 +8625,403 @@ body[data-pdfjsprinting] #printContainer {
     background: none;
   }
 }
+
+/* Freedom PDF Viewer — Custom Styles & Layout Overrides */
+
+/* Force layout adjustment based on our taller custom toolbar */
+#outerContainer {
+  --toolbar-height: 56px !important;
+  --left-toolbar-width: 68px !important;
+}
+
+/* Hide default Solid Block icons for buttons with custom SVGs */
+.toolbarButton:has(svg)::before {
+  display: none !important;
+}
+
+/* Freedom PDF Viewer — Main Toolbar Labeled Buttons */
+#toolbarViewer .toolbarButton.labeled {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  padding: 4px 6px !important;
+  aspect-ratio: unset !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  width: auto !important;
+  cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  transition: background-color 0.2s, transform 0.15s, opacity 0.2s !important;
+}
+
+#toolbarViewer .toolbarButton.labeled:hover {
+  background-color: rgba(128, 128, 128, 0.15) !important;
+}
+
+#toolbarViewer .toolbarButton.labeled:active {
+  transform: scale(0.95) !important;
+}
+
+#toolbarViewer .toolbarButton.labeled svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: var(--main-color) !important;
+  fill: none !important;
+  transition: stroke 0.2s !important;
+}
+
+#toolbarViewer .toolbarButton.labeled>span {
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  color: var(--main-color) !important;
+  white-space: nowrap !important;
+}
+
+/* About and Donate buttons in the main toolbar */
+#aboutButton, #donateButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 4px 6px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  color: var(--main-color) !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  transition: background-color 0.2s !important;
+}
+
+#aboutButton:hover, #donateButton:hover {
+  background-color: rgba(128, 128, 128, 0.15) !important;
+}
+
+/* Secondary Toolbar Custom Buttons Layout */
+#secondaryToolbar .toolbarButton:has(svg) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-inline-start: 12px !important;
+  height: 36px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+}
+
+#secondaryToolbar .toolbarButton:has(svg) svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+#secondaryToolbar .toolbarButton:has(svg) span {
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  font-size: 12px !important;
+  color: var(--main-color) !important;
+}
+
+/* Premium Fullscreen Mode using existing DOM structure */
+#outerContainer.fullscreenMode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  background-color: var(--body-bg-color) !important;
+}
+
+#outerContainer.fullscreenMode #toolbarContainer {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100001 !important;
+}
+
+/* Freedom PDF Viewer: Bookmarks panel */
+.bookmarksList {
+  padding: 4px 0;
+}
+
+.bookmarkItem {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--sidebar-text-color, var(--body-fg-color));
+  border-bottom: 1px solid var(--separator-color, rgba(0, 0, 0, 0.1));
+}
+
+.bookmarkItem:hover {
+  background-color: var(--button-hover-color, rgba(0, 0, 0, 0.1));
+}
+
+.bookmarkPage {
+  min-width: 60px;
+  font-weight: 600;
+  color: var(--toolbar-icon-bg-color, currentColor);
+}
+
+.bookmarkTitle {
+  flex: 1;
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmarkDelete {
+  background: none;
+  border: none;
+  color: var(--toolbar-icon-bg-color, currentColor);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.bookmarkDelete:hover {
+  opacity: 1;
+  color: #ff4444;
+}
+
+.emptyBookmarks {
+  padding: 20px 8px;
+  text-align: center;
+  color: var(--toolbar-icon-bg-color, currentColor);
+  opacity: 0.6;
+  font-style: italic;
+  font-size: 11px;
+}
+
+/* Freedom PDF Viewer: Theme styles */
+#outerContainer.theme-dark {
+  --body-bg-color: #1a1a2e;
+  --sidebar-bg-color: #16213e;
+  --main-bg-color: #0f3460;
+}
+
+#outerContainer.theme-dark .toolbar {
+  background: #16213e !important;
+  border-color: #1a1a4e !important;
+}
+
+#outerContainer.theme-dark .toolbarField,
+#outerContainer.theme-dark .toolbarButton {
+  background: #1a1a3e !important;
+  color: #e0e0e0 !important;
+}
+
+#outerContainer.theme-sepia {
+  --body-bg-color: #f4ecd8;
+  --sidebar-bg-color: #e8dfc8;
+  --main-bg-color: #faf3e0;
+}
+
+#outerContainer.theme-sepia .toolbar {
+  background: #e8dfc8 !important;
+  border-color: #d4c9a8 !important;
+}
+
+#outerContainer.theme-sepia .toolbarField,
+#outerContainer.theme-sepia .toolbarButton {
+  background: #f0e6cc !important;
+  color: #4a3f2f !important;
+}
+
+#outerContainer.theme-night {
+  --body-bg-color: #000000;
+  --sidebar-bg-color: #0a0a0a;
+  --main-bg-color: #111111;
+}
+
+#outerContainer.theme-night .toolbar {
+  background: #0a0a0a !important;
+  border-color: #222 !important;
+}
+
+#outerContainer.theme-night .toolbarField,
+#outerContainer.theme-night .toolbarButton {
+  background: #1a1a1a !important;
+  color: #cccccc !important;
+}
+
+/* Freedom PDF Viewer: Single page styling */
+.singlePageMode .page {
+  max-width: 95vw !important;
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Freedom PDF Viewer: Auto-hide toolbar */
+#toolbarContainer.hidden {
+  display: none !important;
+}
+
+/* Freedom PDF Viewer: Page info tooltip */
+#pageTooltip {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 99999;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* Freedom PDF Viewer — Left Vertical Toolbar Premium Styles */
+#leftVerticalToolbar {
+  position: absolute !important;
+  top: var(--toolbar-height) !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: var(--left-toolbar-width) !important;
+  background-color: var(--sidebar-bg-color, #f4ecd8) !important;
+  border-right: 1px solid var(--separator-color, rgba(0, 0, 0, 0.15)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  padding: 12px 0 !important;
+  box-sizing: border-box !important;
+  z-index: 4 !important;
+  transition: top var(--sidebar-transition-duration, 0.25s) var(--sidebar-transition-timing-function, ease) !important;
+}
+
+.verticalToolbarGroup {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  gap: 12px !important;
+}
+
+.verticalSeparator {
+  width: 60% !important;
+  height: 1px !important;
+  background-color: var(--separator-color, rgba(0, 0, 0, 0.15)) !important;
+  margin: 14px 0 !important;
+}
+
+.verticalButton {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 58px !important;
+  height: 52px !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s, transform 0.15s, opacity 0.2s !important;
+  padding: 4px 2px !important;
+  box-sizing: border-box !important;
+}
+
+.verticalButton:hover {
+  background-color: rgba(128, 128, 128, 0.15) !important;
+}
+
+.verticalButton:active {
+  transform: scale(0.95) !important;
+}
+
+.verticalButton.toggled {
+  background-color: rgba(128, 128, 128, 0.25) !important;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.verticalButton svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: var(--main-color, #4a3f2f) !important;
+  stroke-width: 2px !important;
+  fill: none !important;
+  transition: stroke 0.2s !important;
+  margin-bottom: 2px !important;
+}
+
+.verticalButton span {
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  color: var(--main-color, #4a3f2f) !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+  max-width: 54px !important;
+  display: block !important;
+}
+
+/* Layout coordinates shift */
+#viewerContainer {
+  inset-inline-start: var(--left-toolbar-width) !important;
+  transition-property: inset-inline-start, top !important;
+  transition-duration: var(--sidebar-transition-duration, 0.25s) !important;
+  transition-timing-function: var(--sidebar-transition-timing-function, ease) !important;
+}
+
+#viewsManager {
+  top: var(--toolbar-height) !important;
+  inset-inline-start: calc(-1 * var(--viewsManager-width, 310px) + var(--left-toolbar-width) - 1px) !important;
+  transition-property: inset-inline-start, top !important;
+  transition-duration: var(--sidebar-transition-duration, 0.25s) !important;
+  transition-timing-function: var(--sidebar-transition-timing-function, ease) !important;
+  z-index: 3 !important;
+}
+
+#outerContainer.viewsManagerOpen #viewsManager {
+  inset-inline-start: var(--left-toolbar-width) !important;
+}
+
+#outerContainer.viewsManagerOpen #viewerContainer:not(.pdfPresentationMode) {
+  inset-inline-start: calc(var(--left-toolbar-width) + var(--viewsManager-width, 310px)) !important;
+}
+
+/* When the top toolbar is hidden, slide left vertical toolbar and viewer all the way up */
+#outerContainer.toolbarHidden {
+  --toolbar-height: 0px !important;
+}
+
+/* Theme support for light theme defaults if needed */
+#outerContainer:not(.theme-dark):not(.theme-sepia):not(.theme-night) #leftVerticalToolbar {
+  background-color: #f5f5f5 !important;
+  border-right-color: #d8d8d8 !important;
+}
+
+/* Fullscreen Mode override - hide left vertical toolbar to maximize screen real estate */
+#outerContainer.fullscreenMode #leftVerticalToolbar {
+  display: none !important;
+}
+
+#outerContainer.fullscreenMode #viewerContainer {
+  inset-inline-start: 0px !important;
+}
+
+

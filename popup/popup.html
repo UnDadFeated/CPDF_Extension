@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>Freedom PDF</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
 
@@ -27,7 +28,10 @@
         <h1>Freedom PDF</h1>
       </div>
       <p class="subtitle">Fast, secure, and memory-efficient.</p>
-      <button id="open-viewer">Open PDF Workspace</button>
+      <div id="picker-buttons">
+        <button id="open-viewer">Open PDF Workspace</button>
+        <button id="open-file-btn" class="secondary-btn" style="margin-top: 8px; width: 100%;">Open Local PDF</button>
+      </div>
       <div class="secondary-actions">
         <a
           id="donate-btn"

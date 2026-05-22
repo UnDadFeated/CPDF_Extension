@@ -17,6 +17,8 @@ const VIEWER = chrome.runtime.getURL('pdfjs/web/viewer.html');
 /**
  * Returns true if the URL looks like a PDF and is not already
  * being handled by our viewer.
+ * Uses path/extension only (not Content-Type). URLs like `/download?id=1`
+ * that serve `application/pdf` are not intercepted unless they end in `.pdf`.
  */
 function isPdfNavigation(url) {
   if (!url || typeof url !== 'string' || url.startsWith(VIEWER)) return false;
@@ -91,10 +93,34 @@ chrome.webNavigation.onBeforeNavigate.addListener(
   {
     url: [
       // HTTP / HTTPS PDFs (web links and web drag-and-drop)
-      { schemes: ['http'], urlMatches: '\\.pdf($|\\?|#)' },
-      { schemes: ['https'], urlMatches: '\\.pdf($|\\?|#)' },
+      { schemes: ['http'], targetUrlPatterns: ['*://*/**.pdf', '*://*/**.pdf?*', '*://*/**.pdf#*'] },
+      { schemes: ['https'], targetUrlPatterns: ['*://*/**.pdf', '*://*/**.pdf?*', '*://*/**.pdf#*'] },
       // Local file PDFs (file → open OR drag-and-drop from file manager)
-      { schemes: ['file'], urlMatches: '\\.pdf($|\\?|#)' },
+      { schemes: ['file'], targetUrlPatterns: ['file:///*.pdf', 'file:///*.pdf?*', 'file:///*.pdf#*'] },
     ],
   }
 );
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'open-with-freedom-pdf',
+    title: 'Open with Freedom PDF Viewer',
+    contexts: ['link'],
+    targetUrlPatterns: [
+      '*://*/**.pdf',
+      '*://*/**.pdf?*',
+      '*://*/**.pdf#*',
+      'file:///*.pdf',
+      'file:///*.pdf?*',
+      'file:///*.pdf#*'
+    ]
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'open-with-freedom-pdf') {
+    const [baseUrl, fragment] = info.linkUrl.split('#');
+    const viewerUrl = `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
+    chrome.tabs.update(tab.id, { url: viewerUrl });
+  }
+});
