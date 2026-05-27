@@ -39,7 +39,7 @@ with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as zf:
         if os.path.isfile(fpath):
             zf.write(fpath)
 
-print(f"  → Wrote {output}")
+print(f"  -> Wrote {output}")
 PYEOF
 
 echo ""
