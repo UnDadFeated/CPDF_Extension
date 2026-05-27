@@ -1,4 +1,4 @@
-$VERSION = "3.4.3"
+$VERSION = "3.4.4"
 $OUTPUT_ZIP = "Freedom_PDF_Viewer_v${VERSION}.zip"
 
 Write-Host "Building Freedom PDF Viewer v${VERSION} for release..."

@@ -19502,159 +19502,191 @@ function webViewerLoad() {
     const _eventBus = PDFViewerApplication.eventBus;
 
     // --- Rotate CW toolbar button ---
-    const rotateCwBtn = document.getElementById("pageRotateCwToolbar");
-    if (rotateCwBtn) {
-      rotateCwBtn.addEventListener("click", () => {
-        _eventBus.dispatch("rotatecw", { source: PDFViewerApplication });
-      });
+    try {
+      const rotateCwBtn = document.getElementById("pageRotateCwToolbar");
+      if (rotateCwBtn) {
+        rotateCwBtn.addEventListener("click", () => {
+          _eventBus.dispatch("rotatecw", { source: PDFViewerApplication });
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing CW rotation button:", e);
     }
 
     // --- Delete button ---
-    const deleteBtn = document.getElementById("deleteButton");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", () => {
-        _eventBus.dispatch("editingaction", { source: PDFViewerApplication, action: "delete" });
-      });
+    try {
+      const deleteBtn = document.getElementById("deleteButton");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", () => {
+          _eventBus.dispatch("editingaction", { source: PDFViewerApplication, action: "delete" });
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Delete button:", e);
     }
 
-    // --- Editable PDF detection ---
+    // --- Editable PDF detection & Toast Support ---
     let toastTimeout = null;
     const showToast = (text, duration = 3000) => {
-      const alertBox = document.getElementById("viewer-alert");
-      if (alertBox) {
-        alertBox.textContent = text;
-        alertBox.className = "";
-        if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          alertBox.className = "visuallyHidden";
-          toastTimeout = null;
-        }, duration);
+      try {
+        const alertBox = document.getElementById("viewer-alert");
+        if (alertBox) {
+          alertBox.textContent = text;
+          alertBox.className = "";
+          if (toastTimeout) clearTimeout(toastTimeout);
+          toastTimeout = setTimeout(() => {
+            alertBox.className = "visuallyHidden";
+            toastTimeout = null;
+          }, duration);
+        }
+      } catch (e) {
+        console.error("Freedom PDF Viewer: Error showing toast:", e);
       }
     };
 
-    const detectEditableFields = async function () {
-      try {
-        const pdfDoc = PDFViewerApplication.pdfDocument;
-        if (!pdfDoc) return;
-        let hasFields = false;
-        if (pdfDoc.isPureXfa) {
-          hasFields = true;
-        }
-        if (!hasFields) {
-          const numPages = pdfDoc.numPages;
-          for (let i = 1; i <= numPages; i++) {
-            const page = await pdfDoc.getPage(i);
-            const annotations = await page.getAnnotations();
-            if (annotations.some(a => a.subtype === "Widget")) {
-              hasFields = true;
-              break;
+    try {
+      const detectEditableFields = async function () {
+        try {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          let hasFields = false;
+          if (pdfDoc.isPureXfa) {
+            hasFields = true;
+          }
+          if (!hasFields) {
+            const numPages = pdfDoc.numPages;
+            for (let i = 1; i <= numPages; i++) {
+              const page = await pdfDoc.getPage(i);
+              const annotations = await page.getAnnotations();
+              if (annotations.some(a => a.subtype === "Widget")) {
+                hasFields = true;
+                break;
+              }
             }
           }
+          if (hasFields) {
+            showToast("Editable PDF detected: Form fields are active.");
+          }
+        } catch (err) {
+          console.error("Freedom PDF Viewer: Error detecting editable fields:", err);
         }
-        if (hasFields) {
-          showToast("Editable PDF detected: Form fields are active.");
-        }
-      } catch (err) {
-        console.error("Freedom PDF Viewer: Error detecting editable fields:", err);
-      }
-    };
-    _eventBus.on("documentloaded", detectEditableFields);
+      };
+      _eventBus.on("documentloaded", detectEditableFields);
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error setting up editable fields detection:", e);
+    }
 
     // --- Auto-save annotations ---
-    let _autoSaveTimer = null;
-    let _annotationChangeCounter = 0;
-    const _autoSaveDelay = 30000; // 30 seconds
-    const _checkAutoSave = () => {
-      if (_annotationChangeCounter > 0 && PDFViewerApplication.pdfDocument) {
-        const annotStorage = PDFViewerApplication.pdfDocument.annotationStorage;
-        if (annotStorage.size > 0) {
-          PDFViewerApplication.save();
-          _annotationChangeCounter = 0;
+    try {
+      let _autoSaveTimer = null;
+      let _annotationChangeCounter = 0;
+      const _autoSaveDelay = 30000; // 30 seconds
+      const _checkAutoSave = () => {
+        if (_annotationChangeCounter > 0 && PDFViewerApplication.pdfDocument) {
+          const annotStorage = PDFViewerApplication.pdfDocument.annotationStorage;
+          if (annotStorage.size > 0) {
+            PDFViewerApplication.save();
+            _annotationChangeCounter = 0;
+          }
         }
-      }
-    };
+      };
 
-    // Helper to register auto-save triggers on setModified callbacks
-    const setupAutoSaveHook = (annotStorage) => {
-      if (!annotStorage) return;
-      const origOnSetModified = annotStorage.onSetModified;
-      annotStorage.onSetModified = () => {
-        if (origOnSetModified) origOnSetModified();
+      const setupAutoSaveHook = (annotStorage) => {
+        if (!annotStorage) return;
+        const origOnSetModified = annotStorage.onSetModified;
+        annotStorage.onSetModified = () => {
+          if (origOnSetModified) origOnSetModified();
+          _annotationChangeCounter++;
+          if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+          _autoSaveTimer = setTimeout(_checkAutoSave, _autoSaveDelay);
+        };
+      };
+
+      const origInitCallbacks = PDFViewerApplication._initializeAnnotationStorageCallbacks?.bind(PDFViewerApplication);
+      if (origInitCallbacks) {
+        PDFViewerApplication._initializeAnnotationStorageCallbacks = function (pdfDocument) {
+          origInitCallbacks(pdfDocument);
+          if (pdfDocument && pdfDocument.annotationStorage) {
+            setupAutoSaveHook(pdfDocument.annotationStorage);
+          }
+        };
+      }
+
+      _eventBus.on("documentloaded", () => {
+        const pdfDoc = PDFViewerApplication.pdfDocument;
+        if (pdfDoc && pdfDoc.annotationStorage) {
+          setupAutoSaveHook(pdfDoc.annotationStorage);
+        }
+      });
+
+      _eventBus.on("annotationeditormodechanged", () => {
         _annotationChangeCounter++;
         if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
         _autoSaveTimer = setTimeout(_checkAutoSave, _autoSaveDelay);
-      };
-    };
-
-    // Hook auto-save on newly initialized annotation storage objects
-    const origInitCallbacks = PDFViewerApplication._initializeAnnotationStorageCallbacks?.bind(PDFViewerApplication);
-    if (origInitCallbacks) {
-      PDFViewerApplication._initializeAnnotationStorageCallbacks = function (pdfDocument) {
-        origInitCallbacks(pdfDocument);
-        if (pdfDocument && pdfDocument.annotationStorage) {
-          setupAutoSaveHook(pdfDocument.annotationStorage);
-        }
-      };
+      }, { once: false });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing auto-save annotations:", e);
     }
 
-    // Active hook for direct loaded documents
-    _eventBus.on("documentloaded", () => {
-      const pdfDoc = PDFViewerApplication.pdfDocument;
-      if (pdfDoc && pdfDoc.annotationStorage) {
-        setupAutoSaveHook(pdfDoc.annotationStorage);
-      }
-    });
-
-    _eventBus.on("annotationeditormodechanged", () => {
-      _annotationChangeCounter++;
-      if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
-      _autoSaveTimer = setTimeout(_checkAutoSave, _autoSaveDelay);
-    }, { once: false });
-
     // --- Save confirmation toast ---
-    let _saveTimeout = null;
-    const origSave = PDFViewerApplication.save.bind(PDFViewerApplication);
-    PDFViewerApplication.save = async function () {
-      const result = await origSave();
-      const filename = PDFViewerApplication._docFilename || "document";
-      showToast(`Saved: ${filename}`, 3000);
-      return result;
-    };
+    try {
+      const origSave = PDFViewerApplication.save.bind(PDFViewerApplication);
+      PDFViewerApplication.save = async function () {
+        const result = await origSave();
+        const filename = PDFViewerApplication._docFilename || "document";
+        showToast(`Saved: ${filename}`, 3000);
+        return result;
+      };
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing save confirmation toast:", e);
+    }
 
     // --- Print permission toast ---
-    _eventBus.on("printingallowed", (evt) => {
-      if (!evt.isAllowed) {
-        showToast("Printing is disabled for this PDF by its author.");
-      }
-    }, { once: false });
-    _eventBus.on("beforeprint", () => {
-      if (!PDFViewerApplication.pdfViewer.printingAllowed) {
-        showToast("Printing is disabled for this PDF by its author.");
-      }
-    }, { once: false });
+    try {
+      _eventBus.on("printingallowed", (evt) => {
+        if (!evt.isAllowed) {
+          showToast("Printing is disabled for this PDF by its author.");
+        }
+      }, { once: false });
+      _eventBus.on("beforeprint", () => {
+        if (!PDFViewerApplication.pdfViewer.printingAllowed) {
+          showToast("Printing is disabled for this PDF by its author.");
+        }
+      }, { once: false });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing print permission toast:", e);
+    }
 
     // --- Fullscreen toggle ---
     const toggleFullscreen = () => {
-      const outer = document.getElementById("outerContainer");
-      if (!outer) return;
-      const isFullscreen = outer.classList.toggle("fullscreenMode");
-      const fsBtn = document.getElementById("leftFsToggleBtn");
-      if (fsBtn) {
-        fsBtn.classList.toggle("toggled", isFullscreen);
-        if (isFullscreen) {
-          fsBtn.title = "Exit fullscreen (Ctrl+F)";
-          fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Exit Fullscreen</span>';
-        } else {
-          fsBtn.title = "Toggle fullscreen (Ctrl+F)";
-          fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Fullscreen</span>';
+      try {
+        const outer = document.getElementById("outerContainer");
+        if (!outer) return;
+        const isFullscreen = outer.classList.toggle("fullscreenMode");
+        const fsBtn = document.getElementById("leftFsToggleBtn");
+        if (fsBtn) {
+          fsBtn.classList.toggle("toggled", isFullscreen);
+          if (isFullscreen) {
+            fsBtn.title = "Exit fullscreen (Ctrl+F)";
+            fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Exit Fullscreen</span>';
+          } else {
+            fsBtn.title = "Toggle fullscreen (Ctrl+F)";
+            fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Fullscreen</span>';
+          }
         }
+        showToast(isFullscreen ? "Fullscreen ON" : "Fullscreen OFF");
+      } catch (err) {
+        console.error("Freedom PDF Viewer: Error toggling fullscreen:", err);
       }
-      showToast(isFullscreen ? "Fullscreen ON" : "Fullscreen OFF");
     };
 
-    const fsBtn = document.getElementById("leftFsToggleBtn");
-    if (fsBtn) {
-      fsBtn.addEventListener("click", toggleFullscreen);
+    try {
+      const fsBtn = document.getElementById("leftFsToggleBtn");
+      if (fsBtn) {
+        fsBtn.addEventListener("click", toggleFullscreen);
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing fullscreen controls:", e);
     }
 
     // --- Bookmarks ---
@@ -19665,532 +19697,595 @@ function webViewerLoad() {
       } catch { return []; }
     };
     const saveBookmarks = (bookmarks) => {
-      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+      try {
+        localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+      } catch {}
     };
 
     const renderBookmarks = () => {
-      const container = document.getElementById("bookmarksView");
-      if (!container) return;
-      container.innerHTML = "";
-      const bookmarks = getBookmarks();
-      if (bookmarks.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "treeView emptyBookmarks";
-        empty.textContent = "No bookmarks yet. Click the bookmark button to save the current page.";
-        container.appendChild(empty);
-        return;
-      }
-      const list = document.createElement("div");
-      list.className = "bookmarksList";
-      bookmarks.sort((a, b) => a.page - b.page);
-      bookmarks.forEach((bm) => {
-        const item = document.createElement("div");
-        item.className = "treeItem bookmarkItem";
-        item.setAttribute("tabindex", "0");
-        const pageLabel = document.createElement("span");
-        pageLabel.className = "bookmarkPage";
-        pageLabel.textContent = `Page ${bm.page}`;
-        const title = document.createElement("span");
-        title.className = "bookmarkTitle";
-        title.textContent = bm.note || `Bookmark ${bm.page}`;
-        item.appendChild(pageLabel);
-        item.appendChild(title);
-        const delBtn = document.createElement("button");
-        delBtn.className = "bookmarkDelete";
-        delBtn.textContent = "×";
-        delBtn.title = "Remove bookmark";
-        delBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const updated = getBookmarks().filter(b => b.id !== bm.id);
-          saveBookmarks(updated);
-          renderBookmarks();
-        });
-        item.appendChild(delBtn);
-        item.addEventListener("click", () => {
-          PDFViewerApplication.page = bm.page;
-        });
-        list.appendChild(item);
-      });
-      container.appendChild(list);
-    };
-
-    const addBookmarkBtn = document.getElementById("addBookmarkBtn");
-    if (addBookmarkBtn) {
-      addBookmarkBtn.addEventListener("click", () => {
-        const pdfDoc = PDFViewerApplication.pdfDocument;
-        if (!pdfDoc) return;
-        const page = PDFViewerApplication.page;
+      try {
+        const container = document.getElementById("bookmarksView");
+        if (!container) return;
+        container.innerHTML = "";
         const bookmarks = getBookmarks();
-        const existing = bookmarks.find(b => b.page === page);
-        if (existing) {
-          showToast("Bookmark already exists on page " + page, 2000);
+        if (bookmarks.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "treeView emptyBookmarks";
+          empty.textContent = "No bookmarks yet. Click the bookmark button to save the current page.";
+          container.appendChild(empty);
           return;
         }
-        bookmarks.push({
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-          page: page,
-          note: "",
-          timestamp: Date.now()
+        const list = document.createElement("div");
+        list.className = "bookmarksList";
+        bookmarks.sort((a, b) => a.page - b.page);
+        bookmarks.forEach((bm) => {
+          const item = document.createElement("div");
+          item.className = "treeItem bookmarkItem";
+          item.setAttribute("tabindex", "0");
+          const pageLabel = document.createElement("span");
+          pageLabel.className = "bookmarkPage";
+          pageLabel.textContent = `Page ${bm.page}`;
+          const title = document.createElement("span");
+          title.className = "bookmarkTitle";
+          title.textContent = bm.note || `Bookmark ${bm.page}`;
+          item.appendChild(pageLabel);
+          item.appendChild(title);
+          const delBtn = document.createElement("button");
+          delBtn.className = "bookmarkDelete";
+          delBtn.textContent = "×";
+          delBtn.title = "Remove bookmark";
+          delBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const updated = getBookmarks().filter(b => b.id !== bm.id);
+            saveBookmarks(updated);
+            renderBookmarks();
+          });
+          item.appendChild(delBtn);
+          item.addEventListener("click", () => {
+            PDFViewerApplication.page = bm.page;
+          });
+          list.appendChild(item);
         });
-        saveBookmarks(bookmarks);
-        renderBookmarks();
-        showToast(`Page ${page} bookmarked`);
-      });
-    }
-
-    // Handle bookmarks view toggle in viewsManager
-    const viewsManager = PDFViewerApplication.viewsManager;
-    if (viewsManager) {
-      // Overwrite switchView to automatically hide bookmarks panel
-      const origSwitchView = viewsManager.switchView;
-      viewsManager.switchView = function (view, forceOpen = false) {
-        const bookmarksView = document.getElementById("bookmarksView");
-        if (bookmarksView) {
-          bookmarksView.classList.add("hidden");
-        }
-        origSwitchView.call(this, view, forceOpen);
-      };
-
-      // Custom method to switch to bookmarks view
-      viewsManager.switchToBookmarksView = function () {
-        // Hide standard views
-        if (this.thumbnailsView) this.thumbnailsView.classList.add("hidden");
-        if (this.outlinesView) this.outlinesView.classList.add("hidden");
-        if (this.attachmentsView) this.attachmentsView.classList.add("hidden");
-        if (this.layersView) this.layersView.classList.add("hidden");
-
-        // Untoggle core sidebar buttons
-        if (this.thumbnailButton) this.thumbnailButton.classList.remove("toggled");
-        if (this.outlineButton) this.outlineButton.classList.remove("toggled");
-        if (this.attachmentsButton) this.attachmentsButton.classList.remove("toggled");
-        if (this.layersButton) this.layersButton.classList.remove("toggled");
-
-        // Show bookmarks view
-        const bookmarksView = document.getElementById("bookmarksView");
-        if (bookmarksView) {
-          bookmarksView.classList.remove("hidden");
-          renderBookmarks();
-        }
-
-        // Update header label text
-        if (this.viewsManagerHeaderLabel) {
-          this.viewsManagerHeaderLabel.removeAttribute("data-l10n-id");
-          this.viewsManagerHeaderLabel.textContent = "Bookmarks";
-        }
-
-        // Set active view to bookmarks
-        this.active = "bookmarks";
-
-        // Open viewsManager if not already open
-        if (!this.isOpen) {
-          this.open();
-        }
-
-        // Dispatch sidebarviewchanged to sync UI
-        this.eventBus.dispatch("sidebarviewchanged", {
-          source: this,
-          view: "bookmarks"
-        });
-      };
-    }
-
-    // Toggle pages/bookmarks sidebar panel helper
-    const toggleSidebarView = (viewName) => {
-      const vm = PDFViewerApplication.viewsManager;
-      if (!vm) return;
-
-      if (viewName === "pages") {
-        const isAlreadyOpenAndActive = vm.isOpen && 
-                                       vm.active === 1 && 
-                                       !document.getElementById("thumbnailsView").classList.contains("hidden");
-        if (isAlreadyOpenAndActive) {
-          vm.close();
-        } else {
-          vm.switchView(1, true);
-        }
-      } else if (viewName === "bookmarks") {
-        const isAlreadyOpenAndActive = vm.isOpen && 
-                                       vm.active === "bookmarks" && 
-                                       !document.getElementById("bookmarksView").classList.contains("hidden");
-        if (isAlreadyOpenAndActive) {
-          vm.close();
-        } else {
-          vm.switchToBookmarksView();
-        }
+        container.appendChild(list);
+      } catch (err) {
+        console.error("Freedom PDF Viewer: Error rendering bookmarks:", err);
       }
     };
 
-    // Bind left Pages & Bookmarks vertical buttons
-    const leftPagesToggleBtn = document.getElementById("leftPagesToggleBtn");
-    if (leftPagesToggleBtn) {
-      leftPagesToggleBtn.addEventListener("click", () => toggleSidebarView("pages"));
-    }
-    const leftBookmarksToggleBtn = document.getElementById("leftBookmarksToggleBtn");
-    if (leftBookmarksToggleBtn) {
-      leftBookmarksToggleBtn.addEventListener("click", () => toggleSidebarView("bookmarks"));
-    }
-
-    // Listen to sidebarviewchanged to keep vertical toolbar buttons in sync
-    _eventBus.on("sidebarviewchanged", (evt) => {
-      const leftPagesBtn = document.getElementById("leftPagesToggleBtn");
-      const leftBookBtn = document.getElementById("leftBookmarksToggleBtn");
-      if (evt.view === 1 /* THUMBS */) {
-        if (leftPagesBtn) leftPagesBtn.classList.add("toggled");
-        if (leftBookBtn) leftBookBtn.classList.remove("toggled");
-      } else if (evt.view === "bookmarks") {
-        if (leftPagesBtn) leftPagesBtn.classList.remove("toggled");
-        if (leftBookBtn) leftBookBtn.classList.add("toggled");
-      } else {
-        if (leftPagesBtn) leftPagesBtn.classList.remove("toggled");
-        if (leftBookBtn) leftBookBtn.classList.remove("toggled");
+    try {
+      const addBookmarkBtn = document.getElementById("addBookmarkBtn");
+      if (addBookmarkBtn) {
+        addBookmarkBtn.addEventListener("click", () => {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          const page = PDFViewerApplication.page;
+          const bookmarks = getBookmarks();
+          const existing = bookmarks.find(b => b.page === page);
+          if (existing) {
+            showToast("Bookmark already exists on page " + page, 2000);
+            return;
+          }
+          bookmarks.push({
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            page: page,
+            note: "",
+            timestamp: Date.now()
+          });
+          saveBookmarks(bookmarks);
+          renderBookmarks();
+          showToast(`Page ${page} bookmarked`);
+        });
       }
-    }, { once: false });
 
-    const bookmarksViewMenu = document.getElementById("bookmarksViewMenu");
-    if (bookmarksViewMenu) {
-      bookmarksViewMenu.addEventListener("click", () => {
-        if (viewsManager) viewsManager.switchToBookmarksView();
-      });
+      const viewsManager = PDFViewerApplication.viewsManager;
+      if (viewsManager) {
+        const origSwitchView = viewsManager.switchView;
+        viewsManager.switchView = function (view, forceOpen = false) {
+          const bookmarksView = document.getElementById("bookmarksView");
+          if (bookmarksView) {
+            bookmarksView.classList.add("hidden");
+          }
+          origSwitchView.call(this, view, forceOpen);
+        };
+
+        viewsManager.switchToBookmarksView = function () {
+          if (this.thumbnailsView) this.thumbnailsView.classList.add("hidden");
+          if (this.outlinesView) this.outlinesView.classList.add("hidden");
+          if (this.attachmentsView) this.attachmentsView.classList.add("hidden");
+          if (this.layersView) this.layersView.classList.add("hidden");
+
+          if (this.thumbnailButton) this.thumbnailButton.classList.remove("toggled");
+          if (this.outlineButton) this.outlineButton.classList.remove("toggled");
+          if (this.attachmentsButton) this.attachmentsButton.classList.remove("toggled");
+          if (this.layersButton) this.layersButton.classList.remove("toggled");
+
+          const bookmarksView = document.getElementById("bookmarksView");
+          if (bookmarksView) {
+            bookmarksView.classList.remove("hidden");
+            renderBookmarks();
+          }
+
+          if (this.viewsManagerHeaderLabel) {
+            this.viewsManagerHeaderLabel.removeAttribute("data-l10n-id");
+            this.viewsManagerHeaderLabel.textContent = "Bookmarks";
+          }
+
+          this.active = "bookmarks";
+
+          if (!this.isOpen) {
+            this.open();
+          }
+
+          this.eventBus.dispatch("sidebarviewchanged", {
+            source: this,
+            view: "bookmarks"
+          });
+        };
+      }
+
+      const toggleSidebarView = (viewName) => {
+        const vm = PDFViewerApplication.viewsManager;
+        if (!vm) return;
+
+        if (viewName === "pages") {
+          const isAlreadyOpenAndActive = vm.isOpen && 
+                                         vm.active === 1 && 
+                                         !document.getElementById("thumbnailsView").classList.contains("hidden");
+          if (isAlreadyOpenAndActive) {
+            vm.close();
+          } else {
+            vm.switchView(1, true);
+          }
+        } else if (viewName === "bookmarks") {
+          const isAlreadyOpenAndActive = vm.isOpen && 
+                                         vm.active === "bookmarks" && 
+                                         !document.getElementById("bookmarksView").classList.contains("hidden");
+          if (isAlreadyOpenAndActive) {
+            vm.close();
+          } else {
+            vm.switchToBookmarksView();
+          }
+        }
+      };
+
+      const leftPagesToggleBtn = document.getElementById("leftPagesToggleBtn");
+      if (leftPagesToggleBtn) {
+        leftPagesToggleBtn.addEventListener("click", () => toggleSidebarView("pages"));
+      }
+      const leftBookmarksToggleBtn = document.getElementById("leftBookmarksToggleBtn");
+      if (leftBookmarksToggleBtn) {
+        leftBookmarksToggleBtn.addEventListener("click", () => toggleSidebarView("bookmarks"));
+      }
+
+      _eventBus.on("sidebarviewchanged", (evt) => {
+        const leftPagesBtn = document.getElementById("leftPagesToggleBtn");
+        const leftBookBtn = document.getElementById("leftBookmarksToggleBtn");
+        if (evt.view === 1 /* THUMBS */) {
+          if (leftPagesBtn) leftPagesBtn.classList.add("toggled");
+          if (leftBookBtn) leftBookBtn.classList.remove("toggled");
+        } else if (evt.view === "bookmarks") {
+          if (leftPagesBtn) leftPagesBtn.classList.remove("toggled");
+          if (leftBookBtn) leftBookBtn.classList.add("toggled");
+        } else {
+          if (leftPagesBtn) leftPagesBtn.classList.remove("toggled");
+          if (leftBookBtn) leftBookBtn.classList.remove("toggled");
+        }
+      }, { once: false });
+
+      const bookmarksViewMenu = document.getElementById("bookmarksViewMenu");
+      if (bookmarksViewMenu) {
+        bookmarksViewMenu.addEventListener("click", () => {
+          if (viewsManager) viewsManager.switchToBookmarksView();
+        });
+      }
+      _eventBus.on("documentloaded", () => {
+        renderBookmarks();
+      }, { once: false });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing bookmarks:", e);
     }
-    _eventBus.on("documentloaded", () => {
-      renderBookmarks();
-    }, { once: false });
 
     // --- Page extraction ---
-    const extractBtn = document.getElementById("extractPagesBtn");
-    if (extractBtn) {
-      extractBtn.addEventListener("click", async () => {
-        const pdfDoc = PDFViewerApplication.pdfDocument;
-        if (!pdfDoc) return;
-        const pages = prompt(`Enter page numbers to extract (e.g., "1,3,5" or "2-7"):`);
-        if (!pages) return;
-        const pageNums = [];
-        pages.split(",").forEach(range => {
-          if (range.includes("-")) {
-            const [start, end] = range.split("-").map(Number);
-            for (let i = start; i <= end; i++) pageNums.push(i);
-          } else {
-            pageNums.push(Number(range));
+    try {
+      const extractBtn = document.getElementById("extractPagesBtn");
+      if (extractBtn) {
+        extractBtn.addEventListener("click", async () => {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          const pages = prompt(`Enter page numbers to extract (e.g., "1,3,5" or "2-7"):`);
+          if (!pages) return;
+          const pageNums = [];
+          pages.split(",").forEach(range => {
+            if (range.includes("-")) {
+              const [start, end] = range.split("-").map(Number);
+              for (let i = start; i <= end; i++) pageNums.push(i);
+            } else {
+              pageNums.push(Number(range));
+            }
+          });
+          if (pageNums.some(n => isNaN(n) || n < 1 || n > pdfDoc.numPages)) {
+            showToast("Invalid page range. Pages must be between 1 and " + pdfDoc.numPages);
+            return;
+          }
+          try {
+            const pageNums0 = pageNums.map(p => p - 1);
+            const extracted = await pdfDoc.extractPages([{ document: null, includePages: pageNums0 }]);
+            const blob = new Blob([extracted], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            const filename = PDFViewerApplication._docFilename || "document";
+            const base = filename.replace(/\.pdf$/i, "");
+            a.href = url;
+            a.download = `${base}_extracted.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`Extracted ${pageNums.length} page(s)`);
+          } catch (err) {
+            showToast("Error extracting pages: " + err.message);
           }
         });
-        if (pageNums.some(n => isNaN(n) || n < 1 || n > pdfDoc.numPages)) {
-          showToast("Invalid page range. Pages must be between 1 and " + pdfDoc.numPages);
-          return;
-        }
-        try {
-          const pageNums0 = pageNums.map(p => p - 1);
-          const extracted = await pdfDoc.extractPages([{ document: null, includePages: pageNums0 }]);
-          const blob = new Blob([extracted], { type: "application/pdf" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          const filename = PDFViewerApplication._docFilename || "document";
-          const base = filename.replace(/\.pdf$/i, "");
-          a.href = url;
-          a.download = `${base}_extracted.pdf`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast(`Extracted ${pageNums.length} page(s)`);
-        } catch (err) {
-          showToast("Error extracting pages: " + err.message);
-        }
-      });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing page extraction:", e);
     }
 
     // --- Page reordering via thumbnails ---
-    const thumbsView = document.getElementById("thumbnailsView");
-    if (thumbsView) {
-      PDFViewerApplication.pdfViewer._pageReorderEnabled = true;
-      PDFViewerApplication.pdfViewer._draggedThumb = null;
-      thumbsView.addEventListener("dragstart", (e) => {
-        const thumb = e.target.closest(".thumbnail");
-        if (thumb) {
-          PDFViewerApplication.pdfViewer._draggedThumb = thumb;
-          e.dataTransfer.effectAllowed = "move";
-          thumb.classList.add("dragging");
-        }
-      });
-      thumbsView.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        const thumb = e.target.closest(".thumbnail");
-        if (thumb && thumb !== PDFViewerApplication.pdfViewer._draggedThumb) {
-          const rect = thumb.getBoundingClientRect();
-          const midY = rect.top + rect.height / 2;
-          if (e.clientY < midY) {
-            thumb.parentNode.insertBefore(PDFViewerApplication.pdfViewer._draggedThumb, thumb);
-          } else {
-            thumb.parentNode.insertBefore(PDFViewerApplication.pdfViewer._draggedThumb, thumb.nextSibling);
+    try {
+      const thumbsView = document.getElementById("thumbnailsView");
+      if (thumbsView) {
+        PDFViewerApplication.pdfViewer._pageReorderEnabled = true;
+        PDFViewerApplication.pdfViewer._draggedThumb = null;
+        thumbsView.addEventListener("dragstart", (e) => {
+          const thumb = e.target.closest(".thumbnail");
+          if (thumb) {
+            PDFViewerApplication.pdfViewer._draggedThumb = thumb;
+            e.dataTransfer.effectAllowed = "move";
+            thumb.classList.add("dragging");
           }
-        }
-      });
-      thumbsView.addEventListener("drop", () => {
-        if (PDFViewerApplication.pdfViewer._draggedThumb) {
-          PDFViewerApplication.pdfViewer._draggedThumb.classList.remove("dragging");
-          PDFViewerApplication.pdfViewer._draggedThumb = null;
-        }
-      });
-      thumbsView.addEventListener("dragend", () => {
-        if (PDFViewerApplication.pdfViewer._draggedThumb) {
-          PDFViewerApplication.pdfViewer._draggedThumb.classList.remove("dragging");
-          PDFViewerApplication.pdfViewer._draggedThumb = null;
-        }
-      });
+        });
+        thumbsView.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          const thumb = e.target.closest(".thumbnail");
+          if (thumb && thumb !== PDFViewerApplication.pdfViewer._draggedThumb) {
+            const rect = thumb.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (e.clientY < midY) {
+              thumb.parentNode.insertBefore(PDFViewerApplication.pdfViewer._draggedThumb, thumb);
+            } else {
+              thumb.parentNode.insertBefore(PDFViewerApplication.pdfViewer._draggedThumb, thumb.nextSibling);
+            }
+          }
+        });
+        thumbsView.addEventListener("drop", () => {
+          if (PDFViewerApplication.pdfViewer._draggedThumb) {
+            PDFViewerApplication.pdfViewer._draggedThumb.classList.remove("dragging");
+            PDFViewerApplication.pdfViewer._draggedThumb = null;
+          }
+        });
+        thumbsView.addEventListener("dragend", () => {
+          if (PDFViewerApplication.pdfViewer._draggedThumb) {
+            PDFViewerApplication.pdfViewer._draggedThumb.classList.remove("dragging");
+            PDFViewerApplication.pdfViewer._draggedThumb = null;
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing page reordering:", e);
     }
-
-    // =========================================================================
-    // Intuitive Features — Themes, Views, TTS, etc.
-    // =========================================================================
 
     // --- Theme cycling (Light / Dark / Sepia / Night) ---
-    const themeOrder = ["", "theme-dark", "theme-sepia", "theme-night"];
-    const themeLabels = ["Light", "Dark", "Sepia", "Night"];
-    const themeStorageKey = "freedom.pdf.theme";
-    let currentThemeIndex = parseInt(localStorage.getItem(themeStorageKey) || "0", 10);
-
-    const applyTheme = (index) => {
-      const outer = document.getElementById("outerContainer");
-      if (!outer) return;
-      themeOrder.forEach(t => outer.classList.remove(t));
-      if (index > 0 && themeOrder[index]) {
-        outer.classList.add(themeOrder[index]);
+    try {
+      const themeOrder = ["", "theme-dark", "theme-sepia", "theme-night"];
+      const themeLabels = ["Light", "Dark", "Sepia", "Night"];
+      const themeStorageKey = "freedom.pdf.theme";
+      let currentThemeIndex = parseInt(localStorage.getItem(themeStorageKey) || "0", 10);
+      if (isNaN(currentThemeIndex) || currentThemeIndex < 0 || currentThemeIndex >= themeOrder.length) {
+        currentThemeIndex = 0;
       }
-      currentThemeIndex = index;
-      localStorage.setItem(themeStorageKey, index.toString());
-      
-      const btn = document.getElementById("themeToggleBtn");
-      if (btn) btn.title = `Theme: ${themeLabels[index]}`;
-      const secBtn = document.getElementById("secondaryThemeToggleBtn");
-      if (secBtn) secBtn.title = `Theme: ${themeLabels[index]}`;
-      const leftBtn = document.getElementById("leftThemeToggleBtn");
-      if (leftBtn) leftBtn.title = `Theme: ${themeLabels[index]}`;
-    };
 
-    const cycleTheme = () => {
-      const next = (currentThemeIndex + 1) % themeOrder.length;
-      applyTheme(next);
-      showToast(`${themeLabels[next]} mode`);
-    };
+      const applyTheme = (index) => {
+        const outer = document.getElementById("outerContainer");
+        if (!outer) return;
+        themeOrder.forEach(t => outer.classList.remove(t));
+        if (index > 0 && themeOrder[index]) {
+          outer.classList.add(themeOrder[index]);
+        }
+        currentThemeIndex = index;
+        localStorage.setItem(themeStorageKey, index.toString());
+        
+        const secBtn = document.getElementById("secondaryThemeToggleBtn");
+        if (secBtn) secBtn.title = `Theme: ${themeLabels[index]}`;
+        const leftBtn = document.getElementById("leftThemeToggleBtn");
+        if (leftBtn) leftBtn.title = `Theme: ${themeLabels[index]}`;
+      };
 
-    const themeToggleBtn = document.getElementById("themeToggleBtn");
-    if (themeToggleBtn) {
-      themeToggleBtn.addEventListener("click", cycleTheme);
+      const cycleTheme = () => {
+        const next = (currentThemeIndex + 1) % themeOrder.length;
+        applyTheme(next);
+        showToast(`${themeLabels[next]} mode`);
+      };
+
+      const secondaryThemeToggleBtn = document.getElementById("secondaryThemeToggleBtn");
+      if (secondaryThemeToggleBtn) {
+        secondaryThemeToggleBtn.addEventListener("click", cycleTheme);
+      }
+      const leftThemeToggleBtn = document.getElementById("leftThemeToggleBtn");
+      if (leftThemeToggleBtn) {
+        leftThemeToggleBtn.addEventListener("click", cycleTheme);
+      }
+      applyTheme(currentThemeIndex);
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing theme cycling:", e);
     }
-    const secondaryThemeToggleBtn = document.getElementById("secondaryThemeToggleBtn");
-    if (secondaryThemeToggleBtn) {
-      secondaryThemeToggleBtn.addEventListener("click", cycleTheme);
-    }
-    const leftThemeToggleBtn = document.getElementById("leftThemeToggleBtn");
-    if (leftThemeToggleBtn) {
-      leftThemeToggleBtn.addEventListener("click", cycleTheme);
-    }
-    // Apply initially
-    applyTheme(currentThemeIndex);
 
     // --- Zoom to page-fit on load ---
-    _eventBus.on("documentloaded", () => {
-      try {
-        const savedZoom = localStorage.getItem("freedom.pdf.zoom");
-        if (savedZoom && parseFloat(savedZoom) > 0) {
-          PDFViewerApplication.pdfViewer.currentScaleValue = parseFloat(savedZoom);
-        } else {
-          PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
-        }
-      } catch (e) { /* ignore */ }
-    }, { once: false });
+    try {
+      _eventBus.on("documentloaded", () => {
+        try {
+          const savedZoom = localStorage.getItem("freedom.pdf.zoom");
+          if (savedZoom && parseFloat(savedZoom) > 0) {
+            PDFViewerApplication.pdfViewer.currentScaleValue = parseFloat(savedZoom);
+          } else {
+            PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
+          }
+        } catch (e) { /* ignore */ }
+      }, { once: false });
 
-    // --- Remember last zoom level ---
-    _eventBus.on("scalechanging", (evt) => {
-      try {
-        localStorage.setItem("freedom.pdf.zoom", evt.scale || PDFViewerApplication.pdfViewer.currentScale);
-      } catch (e) { /* ignore */ }
-    }, { once: false });
+      // --- Remember last zoom level ---
+      _eventBus.on("scalechanging", (evt) => {
+        try {
+          localStorage.setItem("freedom.pdf.zoom", evt.scale || PDFViewerApplication.pdfViewer.currentScale);
+        } catch (e) { /* ignore */ }
+      }, { once: false });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing zoom memory:", e);
+    }
 
     // --- Double-click to zoom ---
-    const viewerContainer = document.getElementById("viewerContainer");
-    if (viewerContainer) {
-      viewerContainer.addEventListener("dblclick", (e) => {
-        const pageDiv = e.target.closest(".page");
-        if (!pageDiv) return;
-        const rect = pageDiv.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+    try {
+      const viewerContainer = document.getElementById("viewerContainer");
+      if (viewerContainer) {
+        viewerContainer.addEventListener("dblclick", (e) => {
+          const pageDiv = e.target.closest(".page");
+          if (!pageDiv) return;
+          const rect = pageDiv.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
 
-        const currentScale = PDFViewerApplication.pdfViewer.currentScale;
-        if (currentScale >= 5) {
-          PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
-        } else if (currentScale < 1.5) {
-          PDFViewerApplication.zoomIn();
-        } else {
-          PDFViewerApplication.zoomOut();
-        }
-        // Refocus after zoom
-        setTimeout(() => viewerContainer.focus(), 100);
-      });
+          const currentScale = PDFViewerApplication.pdfViewer.currentScale;
+          if (currentScale >= 5) {
+            PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
+          } else if (currentScale < 1.5) {
+            PDFViewerApplication.zoomIn();
+          } else {
+            PDFViewerApplication.zoomOut();
+          }
+          setTimeout(() => viewerContainer.focus(), 100);
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing double-click zoom:", e);
     }
 
     // --- Single-page view ---
-    let _singlePageMode = false;
-    
-    const updateSinglePageUI = (enabled) => {
-      const mainBtn = document.getElementById("singlePageBtn");
-      const secBtn = document.getElementById("secondarySinglePageBtn");
-      const leftBtn = document.getElementById("leftSinglePageBtn");
-      if (mainBtn) mainBtn.classList.toggle("toggled", enabled);
-      if (secBtn) secBtn.classList.toggle("toggled", enabled);
-      if (leftBtn) leftBtn.classList.toggle("toggled", enabled);
-    };
+    try {
+      let _singlePageMode = false;
+      
+      const updateSinglePageUI = (enabled) => {
+        const secBtn = document.getElementById("secondarySinglePageBtn");
+        const leftBtn = document.getElementById("leftSinglePageBtn");
+        if (secBtn) secBtn.classList.toggle("toggled", enabled);
+        if (leftBtn) leftBtn.classList.toggle("toggled", enabled);
+      };
 
-    const toggleSinglePage = () => {
-      _singlePageMode = !_singlePageMode;
-      updateSinglePageUI(_singlePageMode);
-      if (_singlePageMode) {
-        PDFViewerApplication.pdfViewer.scrollMode = 0; // VERTICAL
-        PDFViewerApplication.pdfViewer.spreadMode = 0; // NONE
-        const pages = document.querySelectorAll(".page");
-        pages.forEach(p => {
-          p.style.maxWidth = "95vw";
-          p.style.marginTop = "20px";
-          p.style.marginBottom = "20px";
-        });
-        showToast("Single page mode");
-      } else {
-        const savedZoom = localStorage.getItem("freedom.pdf.zoom");
-        const pages = document.querySelectorAll(".page");
-        pages.forEach(p => {
-          p.style.maxWidth = "";
-          p.style.marginTop = "";
-          p.style.marginBottom = "";
-        });
-        if (savedZoom) {
-          PDFViewerApplication.pdfViewer.scrollMode = 0;
+      const toggleSinglePage = () => {
+        _singlePageMode = !_singlePageMode;
+        updateSinglePageUI(_singlePageMode);
+        if (_singlePageMode) {
+          PDFViewerApplication.pdfViewer.scrollMode = 0; // VERTICAL
+          PDFViewerApplication.pdfViewer.spreadMode = 0; // NONE
+          const pages = document.querySelectorAll(".page");
+          pages.forEach(p => {
+            p.style.maxWidth = "95vw";
+            p.style.marginTop = "20px";
+            p.style.marginBottom = "20px";
+          });
+          showToast("Single page mode");
+        } else {
+          const savedZoom = localStorage.getItem("freedom.pdf.zoom");
+          const pages = document.querySelectorAll(".page");
+          pages.forEach(p => {
+            p.style.maxWidth = "";
+            p.style.marginTop = "";
+            p.style.marginBottom = "";
+          });
+          if (savedZoom) {
+            PDFViewerApplication.pdfViewer.scrollMode = 0;
+          }
+          showToast("Multi-page mode");
         }
-        showToast("Multi-page mode");
-      }
-    };
+      };
 
-    const singlePageBtn = document.getElementById("singlePageBtn");
-    if (singlePageBtn) {
-      singlePageBtn.addEventListener("click", toggleSinglePage);
-    }
-    const secondarySinglePageBtn = document.getElementById("secondarySinglePageBtn");
-    if (secondarySinglePageBtn) {
-      secondarySinglePageBtn.addEventListener("click", toggleSinglePage);
-    }
-    const leftSinglePageBtn = document.getElementById("leftSinglePageBtn");
-    if (leftSinglePageBtn) {
-      leftSinglePageBtn.addEventListener("click", toggleSinglePage);
+      const secondarySinglePageBtn = document.getElementById("secondarySinglePageBtn");
+      if (secondarySinglePageBtn) {
+        secondarySinglePageBtn.addEventListener("click", toggleSinglePage);
+      }
+      const leftSinglePageBtn = document.getElementById("leftSinglePageBtn");
+      if (leftSinglePageBtn) {
+        leftSinglePageBtn.addEventListener("click", toggleSinglePage);
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing single page view:", e);
     }
 
     // --- Scroll mode toggle ---
-    const toggleScrollMode = () => {
-      const viewer = PDFViewerApplication.pdfViewer;
-      const mainBtn = document.getElementById("viewModeBtn");
-      const secBtn = document.getElementById("secondaryViewModeBtn");
-      const leftBtn = document.getElementById("leftViewModeBtn");
-      
-      if (viewer.scrollMode === 3) { // PAGE (page-by-page) -> switch to continuous
-        viewer.scrollMode = 0; // VERTICAL (continuous)
-        const title = "Switch to page-by-page";
-        if (mainBtn) {
-          mainBtn.title = title;
-          mainBtn.classList.remove("toggled");
+    try {
+      const toggleScrollMode = () => {
+        const viewer = PDFViewerApplication.pdfViewer;
+        const secBtn = document.getElementById("secondaryViewModeBtn");
+        const leftBtn = document.getElementById("leftViewModeBtn");
+        
+        if (viewer.scrollMode === 3) { // PAGE -> continuous
+          viewer.scrollMode = 0; // VERTICAL
+          const title = "Switch to page-by-page";
+          if (secBtn) {
+            secBtn.title = title;
+            secBtn.classList.remove("toggled");
+          }
+          if (leftBtn) {
+            leftBtn.title = title;
+            leftBtn.classList.remove("toggled");
+          }
+          showToast("Continuous scroll");
+        } else {
+          viewer.scrollMode = 3; // PAGE
+          const title = "Switch to continuous scroll";
+          if (secBtn) {
+            secBtn.title = title;
+            secBtn.classList.add("toggled");
+          }
+          if (leftBtn) {
+            leftBtn.title = title;
+            leftBtn.classList.add("toggled");
+          }
+          showToast("Page-by-page scroll");
         }
-        if (secBtn) {
-          secBtn.title = title;
-          secBtn.classList.remove("toggled");
-        }
-        if (leftBtn) {
-          leftBtn.title = title;
-          leftBtn.classList.remove("toggled");
-        }
-        showToast("Continuous scroll");
-      } else {
-        viewer.scrollMode = 3; // PAGE (page-by-page)
-        const title = "Switch to continuous scroll";
-        if (mainBtn) {
-          mainBtn.title = title;
-          mainBtn.classList.add("toggled");
-        }
-        if (secBtn) {
-          secBtn.title = title;
-          secBtn.classList.add("toggled");
-        }
-        if (leftBtn) {
-          leftBtn.title = title;
-          leftBtn.classList.add("toggled");
-        }
-        showToast("Page-by-page scroll");
-      }
-    };
+      };
 
-    const viewModeBtn = document.getElementById("viewModeBtn");
-    if (viewModeBtn) {
-      viewModeBtn.addEventListener("click", toggleScrollMode);
-    }
-    const secondaryViewModeBtn = document.getElementById("secondaryViewModeBtn");
-    if (secondaryViewModeBtn) {
-      secondaryViewModeBtn.addEventListener("click", toggleScrollMode);
-    }
-    const leftViewModeBtn = document.getElementById("leftViewModeBtn");
-    if (leftViewModeBtn) {
-      leftViewModeBtn.addEventListener("click", toggleScrollMode);
+      const secondaryViewModeBtn = document.getElementById("secondaryViewModeBtn");
+      if (secondaryViewModeBtn) {
+        secondaryViewModeBtn.addEventListener("click", toggleScrollMode);
+      }
+      const leftViewModeBtn = document.getElementById("leftViewModeBtn");
+      if (leftViewModeBtn) {
+        leftViewModeBtn.addEventListener("click", toggleScrollMode);
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing scroll mode toggle:", e);
     }
 
     // --- Hide toolbar ---
-    const toolbar = document.getElementById("toolbarContainer");
-    
-    const toggleHideToolbar = () => {
-      if (!toolbar) return;
-      const hidden = toolbar.classList.toggle("hidden");
-      const outer = document.getElementById("outerContainer");
-      if (outer) {
-        outer.classList.toggle("toolbarHidden", hidden);
-      }
-      const mainBtn = document.getElementById("hideToolbarBtn");
-      const secBtn = document.getElementById("secondaryHideToolbarBtn");
-      const leftBtn = document.getElementById("leftHideToolbarBtn");
-      const title = hidden ? "Show toolbar (H)" : "Hide toolbar (H)";
+    try {
+      const toolbar = document.getElementById("toolbarContainer");
+      
+      const toggleHideToolbar = () => {
+        if (!toolbar) return;
+        const hidden = toolbar.classList.toggle("hidden");
+        const outer = document.getElementById("outerContainer");
+        if (outer) {
+          outer.classList.toggle("toolbarHidden", hidden);
+        }
+        const secBtn = document.getElementById("secondaryHideToolbarBtn");
+        const leftBtn = document.getElementById("leftHideToolbarBtn");
+        const title = hidden ? "Show toolbar (H)" : "Hide toolbar (H)";
 
-      if (mainBtn) {
-        mainBtn.classList.toggle("toggled", hidden);
-        mainBtn.title = title;
-      }
-      if (secBtn) {
-        secBtn.classList.toggle("toggled", hidden);
-        secBtn.title = title;
-      }
-      if (leftBtn) {
-        leftBtn.classList.toggle("toggled", hidden);
-        leftBtn.title = title;
-      }
-      showToast(hidden ? "Toolbar hidden" : "Toolbar shown");
-    };
+        if (secBtn) {
+          secBtn.classList.toggle("toggled", hidden);
+          secBtn.title = title;
+        }
+        if (leftBtn) {
+          leftBtn.classList.toggle("toggled", hidden);
+          leftBtn.title = title;
+        }
+        showToast(hidden ? "Toolbar hidden" : "Toolbar shown");
+      };
 
-    const hideToolbarBtn = document.getElementById("hideToolbarBtn");
-    if (hideToolbarBtn) {
-      hideToolbarBtn.addEventListener("click", toggleHideToolbar);
-    }
-    const secondaryHideToolbarBtn = document.getElementById("secondaryHideToolbarBtn");
-    if (secondaryHideToolbarBtn) {
-      secondaryHideToolbarBtn.addEventListener("click", toggleHideToolbar);
-    }
-    const leftHideToolbarBtn = document.getElementById("leftHideToolbarBtn");
-    if (leftHideToolbarBtn) {
-      leftHideToolbarBtn.addEventListener("click", toggleHideToolbar);
+      const secondaryHideToolbarBtn = document.getElementById("secondaryHideToolbarBtn");
+      if (secondaryHideToolbarBtn) {
+        secondaryHideToolbarBtn.addEventListener("click", toggleHideToolbar);
+      }
+      const leftHideToolbarBtn = document.getElementById("leftHideToolbarBtn");
+      if (leftHideToolbarBtn) {
+        leftHideToolbarBtn.addEventListener("click", toggleHideToolbar);
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing hide toolbar controls:", e);
     }
 
     // --- Auto-hide toolbar ---
-    let autoHideEnabled = localStorage.getItem("freedom.pdf.autohide") === "true";
-    let autoHideTimeout = null;
-    let isMouseOverToolbar = false;
+    try {
+      const toolbar = document.getElementById("toolbarContainer");
+      if (toolbar) {
+        let autoHideEnabled = localStorage.getItem("freedom.pdf.autohide") === "true";
+        let autoHideTimeout = null;
+        let isMouseOverToolbar = false;
 
-    const setToolbarVisibility = (visible) => {
-      if (!toolbar) return;
-      if (visible) {
-        toolbar.style.pointerEvents = "";
-        toolbar.style.opacity = "1";
-      } else {
-        if (autoHideEnabled && !isMouseOverToolbar) {
+        const setToolbarVisibility = (visible) => {
+          if (!toolbar) return;
+          if (visible) {
+            toolbar.style.pointerEvents = "";
+            toolbar.style.opacity = "1";
+          } else {
+            if (autoHideEnabled && !isMouseOverToolbar) {
+              toolbar.style.transition = "opacity 0.3s ease";
+              toolbar.style.opacity = "0";
+              setTimeout(() => {
+                if (toolbar && toolbar.style.opacity === "0") {
+                  toolbar.style.pointerEvents = "none";
+                }
+              }, 300);
+            }
+          }
+        };
+
+        const resetAutoHideTimer = () => {
+          if (!autoHideEnabled) return;
+          setToolbarVisibility(true);
+          if (autoHideTimeout) clearTimeout(autoHideTimeout);
+          autoHideTimeout = setTimeout(() => {
+            if (!isMouseOverToolbar) {
+              setToolbarVisibility(false);
+            }
+          }, 3000);
+        };
+
+        const toggleAutoHide = () => {
+          autoHideEnabled = !autoHideEnabled;
+          localStorage.setItem("freedom.pdf.autohide", autoHideEnabled.toString());
+          
+          const secBtn = document.getElementById("secondaryAutoHideToolbarBtn");
+          const leftBtn = document.getElementById("leftAutoHideToolbarBtn");
+          if (secBtn) secBtn.classList.toggle("toggled", autoHideEnabled);
+          if (leftBtn) leftBtn.classList.toggle("toggled", autoHideEnabled);
+
+          if (autoHideEnabled) {
+            resetAutoHideTimer();
+            showToast("Auto-hide ON");
+          } else {
+            if (autoHideTimeout) clearTimeout(autoHideTimeout);
+            isMouseOverToolbar = false;
+            setToolbarVisibility(true);
+            showToast("Auto-hide OFF");
+          }
+        };
+
+        const secondaryAutoHideToolbarBtn = document.getElementById("secondaryAutoHideToolbarBtn");
+        if (secondaryAutoHideToolbarBtn) {
+          secondaryAutoHideToolbarBtn.addEventListener("click", toggleAutoHide);
+          if (autoHideEnabled) secondaryAutoHideToolbarBtn.classList.add("toggled");
+        }
+        const leftAutoHideToolbarBtn = document.getElementById("leftAutoHideToolbarBtn");
+        if (leftAutoHideToolbarBtn) {
+          leftAutoHideToolbarBtn.addEventListener("click", toggleAutoHide);
+          if (autoHideEnabled) leftAutoHideToolbarBtn.classList.add("toggled");
+        }
+
+        toolbar.addEventListener("mouseenter", () => {
+          isMouseOverToolbar = true;
+          if (autoHideEnabled) {
+            setToolbarVisibility(true);
+            if (autoHideTimeout) clearTimeout(autoHideTimeout);
+          }
+        });
+        toolbar.addEventListener("mouseleave", () => {
+          isMouseOverToolbar = false;
+          if (autoHideEnabled) {
+            resetAutoHideTimer();
+          }
+        });
+
+        if (autoHideEnabled) {
           toolbar.style.transition = "opacity 0.3s ease";
           toolbar.style.opacity = "0";
           setTimeout(() => {
@@ -20199,324 +20294,243 @@ function webViewerLoad() {
             }
           }, 300);
         }
+        
+        document.addEventListener("mousemove", resetAutoHideTimer, { capture: true });
+        document.addEventListener("keydown", resetAutoHideTimer, { capture: true });
       }
-    };
-
-    const resetAutoHideTimer = () => {
-      if (!autoHideEnabled) return;
-      setToolbarVisibility(true);
-      if (autoHideTimeout) clearTimeout(autoHideTimeout);
-      autoHideTimeout = setTimeout(() => {
-        if (!isMouseOverToolbar) {
-          setToolbarVisibility(false);
-        }
-      }, 3000);
-    };
-
-    const toggleAutoHide = () => {
-      autoHideEnabled = !autoHideEnabled;
-      localStorage.setItem("freedom.pdf.autohide", autoHideEnabled.toString());
-      
-      const mainBtn = document.getElementById("autoHideToolbarBtn");
-      const secBtn = document.getElementById("secondaryAutoHideToolbarBtn");
-      const leftBtn = document.getElementById("leftAutoHideToolbarBtn");
-      if (mainBtn) mainBtn.classList.toggle("toggled", autoHideEnabled);
-      if (secBtn) secBtn.classList.toggle("toggled", autoHideEnabled);
-      if (leftBtn) leftBtn.classList.toggle("toggled", autoHideEnabled);
-
-      if (autoHideEnabled) {
-        resetAutoHideTimer();
-        showToast("Auto-hide ON");
-      } else {
-        if (autoHideTimeout) clearTimeout(autoHideTimeout);
-        isMouseOverToolbar = false;
-        setToolbarVisibility(true);
-        showToast("Auto-hide OFF");
-      }
-    };
-
-    const autoHideToolbarBtn = document.getElementById("autoHideToolbarBtn");
-    if (autoHideToolbarBtn) {
-      autoHideToolbarBtn.addEventListener("click", toggleAutoHide);
-      if (autoHideEnabled) autoHideToolbarBtn.classList.add("toggled");
-    }
-    const secondaryAutoHideToolbarBtn = document.getElementById("secondaryAutoHideToolbarBtn");
-    if (secondaryAutoHideToolbarBtn) {
-      secondaryAutoHideToolbarBtn.addEventListener("click", toggleAutoHide);
-      if (autoHideEnabled) secondaryAutoHideToolbarBtn.classList.add("toggled");
-    }
-    const leftAutoHideToolbarBtn = document.getElementById("leftAutoHideToolbarBtn");
-    if (leftAutoHideToolbarBtn) {
-      leftAutoHideToolbarBtn.addEventListener("click", toggleAutoHide);
-      if (autoHideEnabled) leftAutoHideToolbarBtn.classList.add("toggled");
-    }
-
-    if (toolbar) {
-      toolbar.addEventListener("mouseenter", () => {
-        isMouseOverToolbar = true;
-        if (autoHideEnabled) {
-          setToolbarVisibility(true);
-          if (autoHideTimeout) clearTimeout(autoHideTimeout);
-        }
-      });
-      toolbar.addEventListener("mouseleave", () => {
-        isMouseOverToolbar = false;
-        if (autoHideEnabled) {
-          resetAutoHideTimer();
-        }
-      });
-
-      if (autoHideEnabled) {
-        toolbar.style.transition = "opacity 0.3s ease";
-        toolbar.style.opacity = "0";
-        setTimeout(() => {
-          if (toolbar && toolbar.style.opacity === "0") {
-            toolbar.style.pointerEvents = "none";
-          }
-        }, 300);
-      }
-      
-      document.addEventListener("mousemove", resetAutoHideTimer, { capture: true });
-      document.addEventListener("keydown", resetAutoHideTimer, { capture: true });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing auto-hide toolbar:", e);
     }
 
     // --- Text-to-speech / Read aloud ---
-    let _reading = false;
-    let _currentUtterance = null;
-    let _readingPage = 0;
+    try {
+      let _reading = false;
+      let _currentUtterance = null;
+      let _readingPage = 0;
 
-    const updateSpeechButtons = (isReading) => {
-      const mainBtn = document.getElementById("readAloudBtn");
-      const secBtn = document.getElementById("secondaryReadAloudBtn");
-      const leftBtn = document.getElementById("leftReadAloudBtn");
-      const title = isReading ? "Stop reading" : "Read aloud (text-to-speech)";
-      
-      if (mainBtn) {
-        mainBtn.classList.toggle("toggled", isReading);
-        mainBtn.title = title;
-      }
-      if (secBtn) {
-        secBtn.classList.toggle("toggled", isReading);
-        secBtn.title = title;
-      }
-      if (leftBtn) {
-        leftBtn.classList.toggle("toggled", isReading);
-        leftBtn.title = title;
-      }
-    };
+      const updateSpeechButtons = (isReading) => {
+        const secBtn = document.getElementById("secondaryReadAloudBtn");
+        const leftBtn = document.getElementById("leftReadAloudBtn");
+        const title = isReading ? "Stop reading" : "Read aloud (text-to-speech)";
+        
+        if (secBtn) {
+          secBtn.classList.toggle("toggled", isReading);
+          secBtn.title = title;
+        }
+        if (leftBtn) {
+          leftBtn.classList.toggle("toggled", isReading);
+          leftBtn.title = title;
+        }
+      };
 
-    const stopReading = () => {
-      window.speechSynthesis.cancel();
-      _reading = false;
-      _readingPage = 0;
-      if (_currentUtterance) {
-        _currentUtterance.onend = null;
-        _currentUtterance = null;
-      }
-      window._ttsUtterance = null;
-      updateSpeechButtons(false);
-    };
+      const stopReading = () => {
+        window.speechSynthesis.cancel();
+        _reading = false;
+        _readingPage = 0;
+        if (_currentUtterance) {
+          _currentUtterance.onend = null;
+          _currentUtterance = null;
+        }
+        window._ttsUtterance = null;
+        updateSpeechButtons(false);
+      };
 
-    const readPageText = async (pageNumber) => {
-      try {
-        const pdfDoc = PDFViewerApplication.pdfDocument;
-        if (!pdfDoc) return;
+      const readPageText = async (pageNumber) => {
+        try {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
 
-        showToast(`Reading page ${pageNumber}...`);
-        const pageObj = await pdfDoc.getPage(pageNumber);
-        const textContent = await pageObj.getTextContent();
-        const items = textContent.items.filter(i => i.str && i.str.trim());
-        const text = items.map(i => i.str).join(" ").trim();
+          showToast(`Reading page ${pageNumber}...`);
+          const pageObj = await pdfDoc.getPage(pageNumber);
+          const textContent = await pageObj.getTextContent();
+          const items = textContent.items.filter(i => i.str && i.str.trim());
+          const text = items.map(i => i.str).join(" ").trim();
 
-        if (text) {
-          _reading = true;
-          _readingPage = pageNumber;
-          updateSpeechButtons(true);
+          if (text) {
+            _reading = true;
+            _readingPage = pageNumber;
+            updateSpeechButtons(true);
 
-          window.speechSynthesis.cancel();
-          _currentUtterance = new SpeechSynthesisUtterance(text);
-          _currentUtterance.rate = 1;
-          
-          // Store a persistent global reference to prevent premature garbage collection cuts in Chrome
-          window._ttsUtterance = _currentUtterance;
-          
-          _currentUtterance.onend = () => {
-            if (_reading && PDFViewerApplication.page === pageNumber) {
-              const nextPage = pageNumber + 1;
-              if (nextPage <= pdfDoc.numPages) {
-                PDFViewerApplication.page = nextPage;
-                // pagechanging event will automatically fire and call readPageText(nextPage)
-              } else {
-                stopReading();
-                showToast("Finished reading document");
-              }
-            }
-          };
-          _currentUtterance.onerror = (e) => {
-            console.error("TTS error:", e);
-            if (_reading) stopReading();
-          };
-          window.speechSynthesis.speak(_currentUtterance);
-        } else {
-          showToast(`No readable text on page ${pageNumber}`);
-          if (_reading) {
-            setTimeout(() => {
+            window.speechSynthesis.cancel();
+            _currentUtterance = new SpeechSynthesisUtterance(text);
+            _currentUtterance.rate = 1;
+            
+            window._ttsUtterance = _currentUtterance;
+            
+            _currentUtterance.onend = () => {
               if (_reading && PDFViewerApplication.page === pageNumber) {
                 const nextPage = pageNumber + 1;
                 if (nextPage <= pdfDoc.numPages) {
                   PDFViewerApplication.page = nextPage;
                 } else {
                   stopReading();
+                  showToast("Finished reading document");
                 }
               }
-            }, 1500);
+            };
+            _currentUtterance.onerror = (e) => {
+              console.error("TTS error:", e);
+              if (_reading) stopReading();
+            };
+            window.speechSynthesis.speak(_currentUtterance);
+          } else {
+            showToast(`No readable text on page ${pageNumber}`);
+            if (_reading) {
+              setTimeout(() => {
+                if (_reading && PDFViewerApplication.page === pageNumber) {
+                  const nextPage = pageNumber + 1;
+                  if (nextPage <= pdfDoc.numPages) {
+                    PDFViewerApplication.page = nextPage;
+                  } else {
+                    stopReading();
+                  }
+                }
+              }, 1500);
+            }
           }
+        } catch (err) {
+          console.error("TTS Page Reading Error:", err);
+          showToast("Error reading page text");
+          stopReading();
         }
-      } catch (err) {
-        console.error("TTS Page Reading Error:", err);
-        showToast("Error reading page text");
-        stopReading();
-      }
-    };
+      };
 
-    const toggleReadAloud = () => {
-      if (_reading) {
-        stopReading();
-        showToast("Stopped reading");
-      } else {
-        const page = PDFViewerApplication.page;
-        readPageText(page);
-      }
-    };
+      const toggleReadAloud = () => {
+        if (_reading) {
+          stopReading();
+          showToast("Stopped reading");
+        } else {
+          const page = PDFViewerApplication.page;
+          readPageText(page);
+        }
+      };
 
-    const readAloudBtn = document.getElementById("readAloudBtn");
-    if (readAloudBtn) {
-      readAloudBtn.addEventListener("click", toggleReadAloud);
-    }
-    const secondaryReadAloudBtn = document.getElementById("secondaryReadAloudBtn");
-    if (secondaryReadAloudBtn) {
-      secondaryReadAloudBtn.addEventListener("click", toggleReadAloud);
-    }
-    const leftReadAloudBtn = document.getElementById("leftReadAloudBtn");
-    if (leftReadAloudBtn) {
-      leftReadAloudBtn.addEventListener("click", toggleReadAloud);
-    }
-
-    // Handle page change during reading
-    _eventBus.on("pagechanging", (evt) => {
-      if (_reading && evt.pageNumber !== _readingPage) {
-        readPageText(evt.pageNumber);
+      const secondaryReadAloudBtn = document.getElementById("secondaryReadAloudBtn");
+      if (secondaryReadAloudBtn) {
+        secondaryReadAloudBtn.addEventListener("click", toggleReadAloud);
       }
-    }, { once: false });
+      const leftReadAloudBtn = document.getElementById("leftReadAloudBtn");
+      if (leftReadAloudBtn) {
+        leftReadAloudBtn.addEventListener("click", toggleReadAloud);
+      }
+
+      _eventBus.on("pagechanging", (evt) => {
+        if (_reading && evt.pageNumber !== _readingPage) {
+          readPageText(evt.pageNumber);
+        }
+      }, { once: false });
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Text-to-Speech:", e);
+    }
 
     // --- Page info tooltip ---
-    const pageNumInput = document.getElementById("pageNumber");
-    const pageTooltip = document.createElement("div");
-    pageTooltip.style.cssText = "position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:6px 12px;border-radius:4px;font-size:12px;pointer-events:none;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.2s;";
-    document.body.appendChild(pageTooltip);
+    try {
+      const pageNumInput = document.getElementById("pageNumber");
+      const pageTooltip = document.createElement("div");
+      pageTooltip.style.cssText = "position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:6px 12px;border-radius:4px;font-size:12px;pointer-events:none;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.2s;";
+      document.body.appendChild(pageTooltip);
 
-    if (pageNumInput) {
-      pageNumInput.addEventListener("mouseenter", () => {
-        const pdfDoc = PDFViewerApplication.pdfDocument;
-        if (pdfDoc) {
-          pageNumInput.title = `Page ${pageNumInput.value} of ${pdfDoc.numPages}`;
-          pageTooltip.textContent = `Page ${pageNumInput.value} of ${pdfDoc.numPages} — ${pdfDoc.numPages} pages total`;
-          pageTooltip.style.opacity = "1";
-        }
-      });
-      pageNumInput.addEventListener("mouseleave", () => {
-        pageTooltip.style.opacity = "0";
-      });
+      if (pageNumInput) {
+        pageNumInput.addEventListener("mouseenter", () => {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (pdfDoc) {
+            pageNumInput.title = `Page ${pageNumInput.value} of ${pdfDoc.numPages}`;
+            pageTooltip.textContent = `Page ${pageNumInput.value} of ${pdfDoc.numPages} — ${pdfDoc.numPages} pages total`;
+            pageTooltip.style.opacity = "1";
+          }
+        });
+        pageNumInput.addEventListener("mouseleave", () => {
+          pageTooltip.style.opacity = "0";
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing page info tooltip:", e);
     }
 
     // --- Keyboard Shortcuts (Global Capture Phase) ---
-    window.addEventListener("keydown", (e) => {
-      if (!e.ctrlKey) return;
+    try {
+      window.addEventListener("keydown", (e) => {
+        if (!e.ctrlKey) return;
 
-      const key = e.key.toLowerCase();
-      
-      // Ctrl+F -> Fullscreen Toggle
-      if (key === "f") {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFullscreen();
-      }
-      // Ctrl+H -> Hide Toolbar
-      else if (key === "h") {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleHideToolbar();
-      }
-      // Ctrl+B -> Add Bookmark
-      else if (key === "b") {
-        e.preventDefault();
-        e.stopPropagation();
-        const bMarkBtn = document.getElementById("addBookmarkBtn");
-        if (bMarkBtn) bMarkBtn.click();
-      }
-      // Ctrl+D -> Delete Selected Annotation
-      else if (key === "d") {
-        e.preventDefault();
-        e.stopPropagation();
-        const deleteBtn = document.getElementById("deleteButton");
-        if (deleteBtn) deleteBtn.click();
-      }
-      // Ctrl+1 -> Single Page Toggle
-      else if (key === "1") {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleSinglePage();
-      }
-      // Ctrl+2 -> Continuous Scroll Mode
-      else if (key === "2") {
-        e.preventDefault();
-        e.stopPropagation();
-        const viewer = PDFViewerApplication.pdfViewer;
-        viewer.scrollMode = 0;
-        viewer.spreadMode = 0;
-        const mainBtn = document.getElementById("viewModeBtn");
-        const secBtn = document.getElementById("secondaryViewModeBtn");
-        const leftBtn = document.getElementById("leftViewModeBtn");
-        const title = "Switch to page-by-page";
-        if (mainBtn) {
-          mainBtn.title = title;
-          mainBtn.classList.remove("toggled");
+        const key = e.key.toLowerCase();
+        
+        // Ctrl+F -> Fullscreen Toggle
+        if (key === "f") {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleFullscreen();
         }
-        if (secBtn) {
-          secBtn.title = title;
-          secBtn.classList.remove("toggled");
+        // Ctrl+H -> Hide Toolbar
+        else if (key === "h") {
+          e.preventDefault();
+          e.stopPropagation();
+          const hideToolbarBtn = document.getElementById("leftHideToolbarBtn");
+          if (hideToolbarBtn) hideToolbarBtn.click();
         }
-        if (leftBtn) {
-          leftBtn.title = title;
-          leftBtn.classList.remove("toggled");
+        // Ctrl+B -> Add Bookmark
+        else if (key === "b") {
+          e.preventDefault();
+          e.stopPropagation();
+          const bMarkBtn = document.getElementById("addBookmarkBtn");
+          if (bMarkBtn) bMarkBtn.click();
         }
-        showToast("Scroll mode: continuous");
-      }
-      // Ctrl+3 -> Horizontal Scroll Mode
-      else if (key === "3") {
-        e.preventDefault();
-        e.stopPropagation();
-        const viewer = PDFViewerApplication.pdfViewer;
-        viewer.scrollMode = 1; // HORIZONTAL
-        const mainBtn = document.getElementById("viewModeBtn");
-        const secBtn = document.getElementById("secondaryViewModeBtn");
-        const leftBtn = document.getElementById("leftViewModeBtn");
-        const title = "Switch to continuous scroll";
-        if (mainBtn) {
-          mainBtn.title = title;
-          mainBtn.classList.add("toggled");
+        // Ctrl+D -> Delete Selected Annotation
+        else if (key === "d") {
+          e.preventDefault();
+          e.stopPropagation();
+          const deleteBtn = document.getElementById("deleteButton");
+          if (deleteBtn) deleteBtn.click();
         }
-        if (secBtn) {
-          secBtn.title = title;
-          secBtn.classList.add("toggled");
+        // Ctrl+1 -> Single Page Toggle
+        else if (key === "1") {
+          e.preventDefault();
+          e.stopPropagation();
+          const singleBtn = document.getElementById("leftSinglePageBtn");
+          if (singleBtn) singleBtn.click();
         }
-        if (leftBtn) {
-          leftBtn.title = title;
-          leftBtn.classList.add("toggled");
+        // Ctrl+2 -> Continuous Scroll Mode
+        else if (key === "2") {
+          e.preventDefault();
+          e.stopPropagation();
+          const viewer = PDFViewerApplication.pdfViewer;
+          viewer.scrollMode = 0;
+          viewer.spreadMode = 0;
+          const secBtn = document.getElementById("secondaryViewModeBtn");
+          const leftBtn = document.getElementById("leftViewModeBtn");
+          const title = "Switch to page-by-page";
+          if (secBtn) {
+            secBtn.title = title;
+            secBtn.classList.remove("toggled");
+          }
+          if (leftBtn) {
+            leftBtn.title = title;
+            leftBtn.classList.remove("toggled");
+          }
+          showToast("Scroll mode: continuous");
         }
-        showToast("Scroll mode: horizontal");
-      }
-    }, true);
+        // Ctrl+3 -> Horizontal Scroll Mode
+        else if (key === "3") {
+          e.preventDefault();
+          e.stopPropagation();
+          const viewer = PDFViewerApplication.pdfViewer;
+          viewer.scrollMode = 1; // HORIZONTAL
+          const secBtn = document.getElementById("secondaryViewModeBtn");
+          const leftBtn = document.getElementById("leftViewModeBtn");
+          const title = "Switch to continuous scroll";
+          if (secBtn) {
+            secBtn.title = title;
+            secBtn.classList.add("toggled");
+          }
+          if (leftBtn) {
+            leftBtn.title = title;
+            leftBtn.classList.add("toggled");
+          }
+          showToast("Scroll mode: horizontal");
+        }
+      }, true);
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing keyboard shortcuts:", e);
+    }
   });
 }
 

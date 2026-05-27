@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.4] — 2026-05-27
+
+### Fixed
+- **🛡️ Robust Defensive Initialization:** Wrapped custom extensions in safe, isolated `try/catch` blocks to guarantee a single failing button/listener never crashes PDF.js loading ("nothing happens").
+- **🎨 High-Contrast Toolbar Icons:** Updated top toolbar custom labeled buttons, About, Donate, and secondary toolbar buttons to use dynamic `--toolbar-icon-bg-color`, automatically adopting system light/dark theme contrast.
+- **📐 Consistent Sidebar Colors:** Mapped left vertical toolbar background and icons to `var(--toolbar-bg-color)` and `var(--toolbar-icon-bg-color)` respectively, giving it identical coloring to the top toolbar in all themes.
+- **⚡ Reliable Action Bindings:** Verified and correctly mapped all event listeners to custom DOM elements like theme cycling, single page, and scroll mode toggle.
+
 ## [3.4.0] — 2026-05-22
 
 ### Added

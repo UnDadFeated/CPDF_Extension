@@ -8669,7 +8669,7 @@ body[data-pdfjsprinting] #printContainer {
 #toolbarViewer .toolbarButton.labeled svg {
   width: 18px !important;
   height: 18px !important;
-  stroke: var(--main-color) !important;
+  stroke: var(--toolbar-icon-bg-color, currentColor) !important;
   fill: none !important;
   transition: stroke 0.2s !important;
 }
@@ -8683,7 +8683,7 @@ body[data-pdfjsprinting] #printContainer {
   font-weight: 500 !important;
   line-height: 1.2 !important;
   text-align: center !important;
-  color: var(--main-color) !important;
+  color: var(--toolbar-icon-bg-color, currentColor) !important;
   white-space: nowrap !important;
 }
 
@@ -8697,7 +8697,7 @@ body[data-pdfjsprinting] #printContainer {
   padding: 4px 6px !important;
   border-radius: 4px !important;
   text-decoration: none !important;
-  color: var(--main-color) !important;
+  color: var(--toolbar-icon-bg-color, currentColor) !important;
   font-size: 14px !important;
   font-weight: bold !important;
   transition: background-color 0.2s !important;
@@ -8734,7 +8734,7 @@ body[data-pdfjsprinting] #printContainer {
   height: auto !important;
   overflow: visible !important;
   font-size: 12px !important;
-  color: var(--main-color) !important;
+  color: var(--toolbar-icon-bg-color, currentColor) !important;
 }
 
 /* Premium Fullscreen Mode using existing DOM structure */
@@ -8943,7 +8943,7 @@ body[data-pdfjsprinting] #printContainer {
   bottom: 0 !important;
   left: 0 !important;
   width: var(--left-toolbar-width) !important;
-  background-color: var(--sidebar-bg-color, #f4ecd8) !important;
+  background-color: var(--toolbar-bg-color) !important;
   border-right: 1px solid var(--separator-color, rgba(0, 0, 0, 0.15)) !important;
   display: flex !important;
   flex-direction: column !important;
@@ -9001,7 +9001,7 @@ body[data-pdfjsprinting] #printContainer {
 .verticalButton svg {
   width: 20px !important;
   height: 20px !important;
-  stroke: var(--main-color, #4a3f2f) !important;
+  stroke: var(--toolbar-icon-bg-color, currentColor) !important;
   stroke-width: 2px !important;
   fill: none !important;
   transition: stroke 0.2s !important;
@@ -9011,7 +9011,7 @@ body[data-pdfjsprinting] #printContainer {
 .verticalButton span {
   font-size: 9px !important;
   font-weight: 500 !important;
-  color: var(--main-color, #4a3f2f) !important;
+  color: var(--toolbar-icon-bg-color, currentColor) !important;
   text-align: center !important;
   white-space: nowrap !important;
   overflow: hidden !important;
@@ -9198,16 +9198,16 @@ body[data-pdfjsprinting] #printContainer {
 
 /* Theme support for left vertical toolbar background */
 #leftVerticalToolbar {
-  background-color: var(--sidebar-bg-color) !important;
+  background-color: var(--toolbar-bg-color) !important;
   border-right: 1px solid var(--sidebar-border-color) !important;
 }
 
 #leftVerticalToolbar .verticalButton span {
-  color: var(--text-color) !important;
+  color: var(--toolbar-icon-bg-color, currentColor) !important;
 }
 
 #leftVerticalToolbar .verticalButton svg {
-  stroke: var(--text-color) !important;
+  stroke: var(--toolbar-icon-bg-color, currentColor) !important;
 }
 
 /* Thumbnails view adjustments for themes */
