@@ -133,3 +133,52 @@ button:active {
 #picker-buttons button {
   margin-bottom: 4px;
 }
+
+.hidden {
+  display: none !important;
+}
+
+.warning-card {
+  margin-top: 16px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  box-sizing: border-box;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.warning-card p {
+  margin: 0 0 14px 0;
+  font-size: 11.5px;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.warning-action-btn {
+  margin-top: 0;
+  width: 100%;
+  color: #f59e0b !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  background-color: rgba(245, 158, 11, 0.04) !important;
+}
+
+.warning-action-btn:hover {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: #f59e0b !important;
+  color: #fbbf24 !important;
+}

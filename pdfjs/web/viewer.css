@@ -8817,51 +8817,93 @@ body[data-pdfjsprinting] #printContainer {
   --body-bg-color: #1a1a2e;
   --sidebar-bg-color: #16213e;
   --main-bg-color: #0f3460;
+  --toolbar-bg-color: #16213e;
+  --toolbar-icon-bg-color: #e0e0e0;
+  --toolbar-icon-hover-bg-color: #ffffff;
+  --toggled-btn-bg-color: #1a1a4e;
+  --toggled-btn-color: #ffffff;
+  --button-hover-color: rgba(255, 255, 255, 0.08);
+  --doorhanger-bg-color: #16213e;
+  --doorhanger-border-color: #1a1a4e;
+  --field-bg-color: #1a1a3e;
+  --field-color: #e0e0e0;
+  --field-border-color: #1a1a4e;
+  --main-color: #e0e0e0;
+  --text-color: #e0e0e0;
+  --sidebar-border-color: #1a1a4e;
 }
 
 #outerContainer.theme-dark .toolbar {
-  background: #16213e !important;
-  border-color: #1a1a4e !important;
+  background-color: var(--toolbar-bg-color) !important;
+  border-bottom: 1px solid var(--sidebar-border-color) !important;
 }
 
-#outerContainer.theme-dark .toolbarField,
-#outerContainer.theme-dark .toolbarButton {
-  background: #1a1a3e !important;
-  color: #e0e0e0 !important;
+#outerContainer.theme-dark .toolbarField {
+  background-color: var(--field-bg-color) !important;
+  color: var(--field-color) !important;
+  border-color: var(--field-border-color) !important;
 }
 
 #outerContainer.theme-sepia {
   --body-bg-color: #f4ecd8;
   --sidebar-bg-color: #e8dfc8;
   --main-bg-color: #faf3e0;
+  --toolbar-bg-color: #e8dfc8;
+  --toolbar-icon-bg-color: #4a3f2f;
+  --toolbar-icon-hover-bg-color: #2c251c;
+  --toggled-btn-bg-color: #d4c9a8;
+  --toggled-btn-color: #2c251c;
+  --button-hover-color: rgba(74, 63, 47, 0.08);
+  --doorhanger-bg-color: #e8dfc8;
+  --doorhanger-border-color: #d4c9a8;
+  --field-bg-color: #f0e6cc;
+  --field-color: #4a3f2f;
+  --field-border-color: #d4c9a8;
+  --main-color: #4a3f2f;
+  --text-color: #4a3f2f;
+  --sidebar-border-color: #d4c9a8;
 }
 
 #outerContainer.theme-sepia .toolbar {
-  background: #e8dfc8 !important;
-  border-color: #d4c9a8 !important;
+  background-color: var(--toolbar-bg-color) !important;
+  border-bottom: 1px solid var(--sidebar-border-color) !important;
 }
 
-#outerContainer.theme-sepia .toolbarField,
-#outerContainer.theme-sepia .toolbarButton {
-  background: #f0e6cc !important;
-  color: #4a3f2f !important;
+#outerContainer.theme-sepia .toolbarField {
+  background-color: var(--field-bg-color) !important;
+  color: var(--field-color) !important;
+  border-color: var(--field-border-color) !important;
 }
 
 #outerContainer.theme-night {
   --body-bg-color: #000000;
   --sidebar-bg-color: #0a0a0a;
   --main-bg-color: #111111;
+  --toolbar-bg-color: #0a0a0a;
+  --toolbar-icon-bg-color: #cccccc;
+  --toolbar-icon-hover-bg-color: #ffffff;
+  --toggled-btn-bg-color: #1a1a1a;
+  --toggled-btn-color: #ffffff;
+  --button-hover-color: rgba(255, 255, 255, 0.06);
+  --doorhanger-bg-color: #0a0a0a;
+  --doorhanger-border-color: #222222;
+  --field-bg-color: #1a1a1a;
+  --field-color: #cccccc;
+  --field-border-color: #222222;
+  --main-color: #cccccc;
+  --text-color: #cccccc;
+  --sidebar-border-color: #222222;
 }
 
 #outerContainer.theme-night .toolbar {
-  background: #0a0a0a !important;
-  border-color: #222 !important;
+  background-color: var(--toolbar-bg-color) !important;
+  border-bottom: 1px solid var(--sidebar-border-color) !important;
 }
 
-#outerContainer.theme-night .toolbarField,
-#outerContainer.theme-night .toolbarButton {
-  background: #1a1a1a !important;
-  color: #cccccc !important;
+#outerContainer.theme-night .toolbarField {
+  background-color: var(--field-bg-color) !important;
+  color: var(--field-color) !important;
+  border-color: var(--field-border-color) !important;
 }
 
 /* Freedom PDF Viewer: Single page styling */
@@ -9009,12 +9051,6 @@ body[data-pdfjsprinting] #printContainer {
   --toolbar-height: 0px !important;
 }
 
-/* Theme support for light theme defaults if needed */
-#outerContainer:not(.theme-dark):not(.theme-sepia):not(.theme-night) #leftVerticalToolbar {
-  background-color: #f5f5f5 !important;
-  border-right-color: #d8d8d8 !important;
-}
-
 /* Fullscreen Mode override - hide left vertical toolbar to maximize screen real estate */
 #outerContainer.fullscreenMode #leftVerticalToolbar {
   display: none !important;
@@ -9022,6 +9058,165 @@ body[data-pdfjsprinting] #printContainer {
 
 #outerContainer.fullscreenMode #viewerContainer {
   inset-inline-start: 0px !important;
+}
+
+/* =========================================================================
+   Freedom PDF Viewer — Sidebar (#viewsManager) & Left Toolbar Theme Styles
+   ========================================================================= */
+
+/* Common theme variables for default (light) theme */
+#outerContainer:not(.theme-dark):not(.theme-sepia):not(.theme-night) {
+  --sidebar-bg-color: #f5f5f5;
+  --sidebar-border-color: #d8d8d8;
+  --text-color: #2c3e50;
+  --button-fg: #34495e;
+  --treeitem-color: #2c3e50;
+  --treeitem-hover-color: #1a252f;
+  --treeitem-selected-color: #1a252f;
+  --treeitem-bg-color: rgba(0, 0, 0, 0.06);
+  --treeitem-selected-bg-color: rgba(0, 0, 0, 0.12);
+  --button-bg: rgba(0, 0, 0, 0.04);
+  --button-hover-bg: rgba(0, 0, 0, 0.08);
+  --button-active-bg: rgba(0, 0, 0, 0.12);
+  --main-color: #34495e;
+}
+
+/* Explicit values for dark theme */
+#outerContainer.theme-dark {
+  --sidebar-bg-color: #16213e;
+  --sidebar-border-color: #1a1a4e;
+  --text-color: #e0e0e0;
+  --button-fg: #e0e0e0;
+  --treeitem-color: #e0e0e0;
+  --treeitem-hover-color: #ffffff;
+  --treeitem-selected-color: #ffffff;
+  --treeitem-bg-color: rgba(255, 255, 255, 0.08);
+  --treeitem-selected-bg-color: rgba(255, 255, 255, 0.15);
+  --button-bg: rgba(255, 255, 255, 0.05);
+  --button-hover-bg: rgba(255, 255, 255, 0.1);
+  --button-active-bg: rgba(255, 255, 255, 0.15);
+  --main-color: #e0e0e0;
+}
+
+/* Explicit values for sepia theme */
+#outerContainer.theme-sepia {
+  --sidebar-bg-color: #e8dfc8;
+  --sidebar-border-color: #d4c9a8;
+  --text-color: #4a3f2f;
+  --button-fg: #4a3f2f;
+  --treeitem-color: #4a3f2f;
+  --treeitem-hover-color: #2c251c;
+  --treeitem-selected-color: #2c251c;
+  --treeitem-bg-color: rgba(74, 63, 47, 0.08);
+  --treeitem-selected-bg-color: rgba(74, 63, 47, 0.15);
+  --button-bg: rgba(74, 63, 47, 0.05);
+  --button-hover-bg: rgba(74, 63, 47, 0.1);
+  --button-active-bg: rgba(74, 63, 47, 0.15);
+  --main-color: #4a3f2f;
+}
+
+/* Explicit values for night theme */
+#outerContainer.theme-night {
+  --sidebar-bg-color: #0a0a0a;
+  --sidebar-border-color: #222222;
+  --text-color: #cccccc;
+  --button-fg: #cccccc;
+  --treeitem-color: #cccccc;
+  --treeitem-hover-color: #ffffff;
+  --treeitem-selected-color: #ffffff;
+  --treeitem-bg-color: rgba(255, 255, 255, 0.06);
+  --treeitem-selected-bg-color: rgba(255, 255, 255, 0.12);
+  --button-bg: rgba(255, 255, 255, 0.04);
+  --button-hover-bg: rgba(255, 255, 255, 0.08);
+  --button-active-bg: rgba(255, 255, 255, 0.12);
+  --main-color: #cccccc;
+}
+
+/* Apply background and border styles to viewsManager sidebar container */
+#viewsManager {
+  background-color: var(--sidebar-bg-color) !important;
+  border-right: 1px solid var(--sidebar-border-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Ensure background of sidebar panel wrapper matches */
+#viewsManagerContent {
+  background-color: var(--sidebar-bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Style the sidebar resizer line */
+#viewsManager .sidebarResizer {
+  background-color: var(--sidebar-border-color) !important;
+}
+
+/* Apply theme colors to header, title, selectors, and buttons inside viewsManager */
+#viewsManagerHeader,
+#viewsManagerTitle,
+#viewsManagerSelectorButton,
+#viewsManagerSelectorButton > span,
+#viewsManagerHeaderLabel,
+#viewsManagerSelectorOptions,
+#viewsManagerSelectorOptions * {
+  color: var(--text-color) !important;
+}
+
+#viewsManagerStatusActionLabel {
+  color: var(--text-color) !important;
+}
+
+/* Ensure tree view lists and nodes are styled with theme colors and hover transitions */
+.treeView .treeItem > a {
+  color: var(--treeitem-color) !important;
+  transition: background-color 0.2s, color 0.2s !important;
+}
+
+.treeView .treeItem > a:hover {
+  background-color: var(--treeitem-bg-color) !important;
+  color: var(--treeitem-hover-color) !important;
+}
+
+.selected:is(.treeView .treeItem) > a {
+  background-color: var(--treeitem-selected-bg-color) !important;
+  color: var(--treeitem-selected-color) !important;
+}
+
+/* Style the popup dropdowns in viewsManager */
+#viewsManager .popupMenu {
+  background-color: var(--sidebar-bg-color) !important;
+  border: 1px solid var(--sidebar-border-color) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+#viewsManager .popupMenu > li:hover {
+  background-color: var(--treeitem-bg-color) !important;
+}
+
+#viewsManager .popupMenu > li > button > span {
+  color: var(--text-color) !important;
+}
+
+/* Theme support for left vertical toolbar background */
+#leftVerticalToolbar {
+  background-color: var(--sidebar-bg-color) !important;
+  border-right: 1px solid var(--sidebar-border-color) !important;
+}
+
+#leftVerticalToolbar .verticalButton span {
+  color: var(--text-color) !important;
+}
+
+#leftVerticalToolbar .verticalButton svg {
+  stroke: var(--text-color) !important;
+}
+
+/* Thumbnails view adjustments for themes */
+#thumbnailsView {
+  background-color: var(--sidebar-bg-color) !important;
+}
+
+#thumbnailsView .thumbnailImage {
+  border-color: var(--sidebar-border-color) !important;
 }
 
 

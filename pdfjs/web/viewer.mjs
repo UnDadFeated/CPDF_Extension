@@ -17481,12 +17481,14 @@ const PDFViewerApplication = {
     const queryString = document.location.search.substring(1);
     const params = parseQueryString(queryString);
     file = params.get("file") ?? AppOptions.get("defaultUrl");
-    try {
-      file = new URL(file).href;
-    } catch {
-      file = encodeURIComponent(file).replaceAll("%2F", "/");
+    if (file) {
+      try {
+        file = new URL(file, window.location.href).href;
+      } catch {
+        // Fallback to leaving the file parameter as is if parsing fails
+      }
+      validateFileURL(file);
     }
-    validateFileURL(file);
     const fileInput = this._openFileInput = document.createElement("input");
     fileInput.id = "fileInput";
     fileInput.hidden = true;
@@ -17507,7 +17509,8 @@ const PDFViewerApplication = {
     });
     appConfig.mainContainer.addEventListener("dragover", function (evt) {
       for (const item of evt.dataTransfer.items) {
-        if (item.type === "application/pdf") {
+        // Chromium often blanks MIME types during dragover for security, so also match files with empty type
+        if (item.type === "application/pdf" || (item.kind === "file" && item.type === "")) {
           evt.dataTransfer.dropEffect = evt.dataTransfer.effectAllowed === "copy" ? "copy" : "move";
           stopEvent(evt);
           return;
@@ -17515,9 +17518,11 @@ const PDFViewerApplication = {
       }
     });
     appConfig.mainContainer.addEventListener("drop", function (evt) {
-      if (evt.dataTransfer.files?.[0].type !== "application/pdf") {
-        return;
-      }
+      const file = evt.dataTransfer.files?.[0];
+      if (!file) return;
+      // Support system configurations where the MIME type is not correctly registered as application/pdf
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (!isPdf) return;
       stopEvent(evt);
       eventBus.dispatch("fileinputchange", {
         source: this,
@@ -19568,6 +19573,38 @@ function webViewerLoad() {
         }
       }
     };
+
+    // Helper to register auto-save triggers on setModified callbacks
+    const setupAutoSaveHook = (annotStorage) => {
+      if (!annotStorage) return;
+      const origOnSetModified = annotStorage.onSetModified;
+      annotStorage.onSetModified = () => {
+        if (origOnSetModified) origOnSetModified();
+        _annotationChangeCounter++;
+        if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+        _autoSaveTimer = setTimeout(_checkAutoSave, _autoSaveDelay);
+      };
+    };
+
+    // Hook auto-save on newly initialized annotation storage objects
+    const origInitCallbacks = PDFViewerApplication._initializeAnnotationStorageCallbacks?.bind(PDFViewerApplication);
+    if (origInitCallbacks) {
+      PDFViewerApplication._initializeAnnotationStorageCallbacks = function (pdfDocument) {
+        origInitCallbacks(pdfDocument);
+        if (pdfDocument && pdfDocument.annotationStorage) {
+          setupAutoSaveHook(pdfDocument.annotationStorage);
+        }
+      };
+    }
+
+    // Active hook for direct loaded documents
+    _eventBus.on("documentloaded", () => {
+      const pdfDoc = PDFViewerApplication.pdfDocument;
+      if (pdfDoc && pdfDoc.annotationStorage) {
+        setupAutoSaveHook(pdfDoc.annotationStorage);
+      }
+    });
+
     _eventBus.on("annotationeditormodechanged", () => {
       _annotationChangeCounter++;
       if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
@@ -19601,21 +19638,21 @@ function webViewerLoad() {
       const outer = document.getElementById("outerContainer");
       if (!outer) return;
       const isFullscreen = outer.classList.toggle("fullscreenMode");
-      const fsBtn = document.getElementById("fsToggleBtn");
+      const fsBtn = document.getElementById("leftFsToggleBtn");
       if (fsBtn) {
         fsBtn.classList.toggle("toggled", isFullscreen);
         if (isFullscreen) {
           fsBtn.title = "Exit fullscreen (Ctrl+F)";
-          fsBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Exit Fullscreen</span>';
+          fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Exit Fullscreen</span>';
         } else {
           fsBtn.title = "Toggle fullscreen (Ctrl+F)";
-          fsBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Fullscreen</span>';
+          fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Fullscreen</span>';
         }
       }
       showToast(isFullscreen ? "Fullscreen ON" : "Fullscreen OFF");
     };
 
-    const fsBtn = document.getElementById("fsToggleBtn");
+    const fsBtn = document.getElementById("leftFsToggleBtn");
     if (fsBtn) {
       fsBtn.addEventListener("click", toggleFullscreen);
     }
@@ -20275,6 +20312,7 @@ function webViewerLoad() {
         _currentUtterance.onend = null;
         _currentUtterance = null;
       }
+      window._ttsUtterance = null;
       updateSpeechButtons(false);
     };
 
@@ -20297,6 +20335,10 @@ function webViewerLoad() {
           window.speechSynthesis.cancel();
           _currentUtterance = new SpeechSynthesisUtterance(text);
           _currentUtterance.rate = 1;
+          
+          // Store a persistent global reference to prevent premature garbage collection cuts in Chrome
+          window._ttsUtterance = _currentUtterance;
+          
           _currentUtterance.onend = () => {
             if (_reading && PDFViewerApplication.page === pageNumber) {
               const nextPage = pageNumber + 1;
@@ -20361,8 +20403,8 @@ function webViewerLoad() {
 
     // Handle page change during reading
     _eventBus.on("pagechanging", (evt) => {
-      if (_reading && evt.page !== _readingPage) {
-        readPageText(evt.page);
+      if (_reading && evt.pageNumber !== _readingPage) {
+        readPageText(evt.pageNumber);
       }
     }, { once: false });
 

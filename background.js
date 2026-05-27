@@ -92,11 +92,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
   },
   {
     url: [
-      // HTTP / HTTPS PDFs (web links and web drag-and-drop)
-      { schemes: ['http'], targetUrlPatterns: ['*://*/**.pdf', '*://*/**.pdf?*', '*://*/**.pdf#*'] },
-      { schemes: ['https'], targetUrlPatterns: ['*://*/**.pdf', '*://*/**.pdf?*', '*://*/**.pdf#*'] },
-      // Local file PDFs (file → open OR drag-and-drop from file manager)
-      { schemes: ['file'], targetUrlPatterns: ['file:///*.pdf', 'file:///*.pdf?*', 'file:///*.pdf#*'] },
+      { schemes: ['http', 'https', 'file'], urlMatches: '\\.[pP][dD][fF]($|\\?|#)' }
     ],
   }
 );
@@ -121,6 +117,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'open-with-freedom-pdf') {
     const [baseUrl, fragment] = info.linkUrl.split('#');
     const viewerUrl = `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
-    chrome.tabs.update(tab.id, { url: viewerUrl });
+    if (tab && tab.id) {
+      chrome.tabs.update(tab.id, { url: viewerUrl });
+    } else {
+      chrome.tabs.create({ url: viewerUrl });
+    }
   }
 });
