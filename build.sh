@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="3.4.2"
+VERSION="3.4.3"
 OUTPUT_ZIP="Freedom_PDF_Viewer_v${VERSION}.zip"
 
 echo "Building Freedom PDF Viewer v${VERSION} for release..."
@@ -19,7 +19,7 @@ version = os.environ["VERSION"]
 output = f"Freedom_PDF_Viewer_v{version}.zip"
 include_roots = ["popup", "pdfjs", "icons"]
 include_files = ["manifest.json", "README.md", "PRIVACY.md", "CHANGELOG.md", "background.js"]
-exclude_exts  = {".pyc", ".mjs.map", ".css.map"}
+exclude_exts  = {".pyc", ".map"}
 exclude_names = {".DS_Store", ".gitignore", "debugger.css", "debugger.mjs"}
 
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as zf:

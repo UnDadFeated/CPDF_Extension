@@ -19623,7 +19623,7 @@ function webViewerLoad() {
 
     // --- Print permission toast ---
     _eventBus.on("printingallowed", (evt) => {
-      if (!evt.allowed) {
+      if (!evt.isAllowed) {
         showToast("Printing is disabled for this PDF by its author.");
       }
     }, { once: false });
@@ -19878,7 +19878,8 @@ function webViewerLoad() {
           return;
         }
         try {
-          const extracted = await pdfDoc.extractPages(pageNums.map(p => ({ pageNum: p })));
+          const pageNums0 = pageNums.map(p => p - 1);
+          const extracted = await pdfDoc.extractPages([{ document: null, includePages: pageNums0 }]);
           const blob = new Blob([extracted], { type: "application/pdf" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -19990,9 +19991,9 @@ function webViewerLoad() {
       try {
         const savedZoom = localStorage.getItem("freedom.pdf.zoom");
         if (savedZoom && parseFloat(savedZoom) > 0) {
-          PDFViewerApplication.setScale(savedZoom, true);
+          PDFViewerApplication.pdfViewer.currentScaleValue = parseFloat(savedZoom);
         } else {
-          PDFViewerApplication.setScale("page-fit", true);
+          PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
         }
       } catch (e) { /* ignore */ }
     }, { once: false });
@@ -20000,7 +20001,7 @@ function webViewerLoad() {
     // --- Remember last zoom level ---
     _eventBus.on("scalechanging", (evt) => {
       try {
-        localStorage.setItem("freedom.pdf.zoom", evt.value || PDFViewerApplication.currentScale);
+        localStorage.setItem("freedom.pdf.zoom", evt.scale || PDFViewerApplication.pdfViewer.currentScale);
       } catch (e) { /* ignore */ }
     }, { once: false });
 
@@ -20016,7 +20017,7 @@ function webViewerLoad() {
 
         const currentScale = PDFViewerApplication.pdfViewer.currentScale;
         if (currentScale >= 5) {
-          PDFViewerApplication.setScale("page-fit", true);
+          PDFViewerApplication.pdfViewer.currentScaleValue = "page-fit";
         } else if (currentScale < 1.5) {
           PDFViewerApplication.zoomIn();
         } else {
@@ -20043,7 +20044,7 @@ function webViewerLoad() {
       _singlePageMode = !_singlePageMode;
       updateSinglePageUI(_singlePageMode);
       if (_singlePageMode) {
-        PDFViewerApplication.pdfViewer.scrollMode = 1; // VERTICAL
+        PDFViewerApplication.pdfViewer.scrollMode = 0; // VERTICAL
         PDFViewerApplication.pdfViewer.spreadMode = 0; // NONE
         const pages = document.querySelectorAll(".page");
         pages.forEach(p => {
@@ -20087,8 +20088,8 @@ function webViewerLoad() {
       const secBtn = document.getElementById("secondaryViewModeBtn");
       const leftBtn = document.getElementById("leftViewModeBtn");
       
-      if (viewer.scrollMode === 2) { // HORIZONTAL
-        viewer.scrollMode = 1; // VERTICAL (continuous)
+      if (viewer.scrollMode === 3) { // PAGE (page-by-page) -> switch to continuous
+        viewer.scrollMode = 0; // VERTICAL (continuous)
         const title = "Switch to page-by-page";
         if (mainBtn) {
           mainBtn.title = title;
@@ -20104,7 +20105,7 @@ function webViewerLoad() {
         }
         showToast("Continuous scroll");
       } else {
-        viewer.scrollMode = 2; // HORIZONTAL
+        viewer.scrollMode = 3; // PAGE (page-by-page)
         const title = "Switch to continuous scroll";
         if (mainBtn) {
           mainBtn.title = title;
@@ -20496,7 +20497,7 @@ function webViewerLoad() {
         e.preventDefault();
         e.stopPropagation();
         const viewer = PDFViewerApplication.pdfViewer;
-        viewer.scrollMode = 2;
+        viewer.scrollMode = 1; // HORIZONTAL
         const mainBtn = document.getElementById("viewModeBtn");
         const secBtn = document.getElementById("secondaryViewModeBtn");
         const leftBtn = document.getElementById("leftViewModeBtn");
