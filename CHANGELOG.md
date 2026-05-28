@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.9] — 2026-05-28
+
+### Fixed
+- **📁 Robust Local PDF Loading (`file://` URLs)**: Added a main-thread XMLHttpRequest bypass to load local PDF documents on Windows/OS correctly. This avoids Chrome's Web Worker CORS restrictions and ensures double-clicked local files load successfully.
+- **✨ Clean Empty Workspace**: Removed loading failure overlays when launching a blank viewer by only loading documents when a valid file query parameter is present.
+
 ## [3.4.8] — 2026-05-28
 
 ### Fixed
