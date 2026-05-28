@@ -17480,7 +17480,7 @@ const PDFViewerApplication = {
     let file;
     const queryString = document.location.search.substring(1);
     const params = parseQueryString(queryString);
-    file = params.get("file") ?? AppOptions.get("defaultUrl");
+    file = params.get("file");
     if (file) {
       try {
         file = new URL(file, window.location.href).href;
@@ -17553,9 +17553,83 @@ const PDFViewerApplication = {
       appConfig.findBar?.toggleButton?.classList.add("hidden");
     }
     if (file) {
-      this.open({
-        url: file
-      });
+      if (file.startsWith("http://") || file.startsWith("https://")) {
+        // Extension pages inherit host_permissions from manifest.json and can
+        // fetch cross-origin directly.  PDF.js's internal Web Worker does NOT
+        // inherit those permissions, so we fetch on the main thread and hand
+        // the raw bytes to PDF.js via the `data` parameter.
+        const alertBox = document.getElementById("viewer-alert");
+        if (alertBox) {
+          alertBox.textContent = "Loading PDF\u2026";
+          alertBox.className = "";
+        }
+        try {
+          const resp = await fetch(file);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const buf = await resp.arrayBuffer();
+          if (alertBox) alertBox.className = "visuallyHidden";
+          this.open({ data: new Uint8Array(buf), originalUrl: file });
+        } catch (err) {
+          console.error("Freedom PDF Viewer: direct fetch failed, trying service-worker relay:", err);
+          // Fallback: relay through the background service worker (which also
+          // has host_permissions) and receive the PDF as a base64 string.
+          try {
+            const swResponse = await new Promise((resolve, reject) => {
+              chrome.runtime.sendMessage({ action: "fetchPdf", url: file }, (r) => {
+                if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+                else resolve(r);
+              });
+            });
+            if (swResponse?.success && swResponse.data) {
+              const bin = atob(swResponse.data);
+              const bytes = new Uint8Array(bin.length);
+              for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+              if (alertBox) alertBox.className = "visuallyHidden";
+              this.open({ data: bytes, originalUrl: file });
+            } else {
+              throw new Error(swResponse?.error || "empty response");
+            }
+          } catch (swErr) {
+            console.error("Freedom PDF Viewer: service-worker relay also failed:", swErr);
+            if (alertBox) alertBox.className = "visuallyHidden";
+            this.open({ url: file });
+          }
+        }
+      } else if (file.startsWith("file://")) {
+        // Fetch local file on the main thread using XMLHttpRequest
+        // since fetch() does not support file:// scheme but XHR does.
+        const alertBox = document.getElementById("viewer-alert");
+        if (alertBox) {
+          alertBox.textContent = "Loading local PDF\u2026";
+          alertBox.className = "";
+        }
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", file, true);
+          xhr.responseType = "arraybuffer";
+          const buf = await new Promise((resolve, reject) => {
+            xhr.onload = () => {
+              if (xhr.status === 200 || xhr.status === 0) {
+                resolve(xhr.response);
+              } else {
+                reject(new Error(`XHR failed with status ${xhr.status}`));
+              }
+            };
+            xhr.onerror = () => reject(new Error("XHR network error"));
+            xhr.send();
+          });
+          if (alertBox) alertBox.className = "visuallyHidden";
+          this.open({ data: new Uint8Array(buf), originalUrl: file });
+        } catch (err) {
+          console.error("Freedom PDF Viewer: local XHR fetch failed, trying direct open:", err);
+          if (alertBox) alertBox.className = "visuallyHidden";
+          this.open({ url: file });
+        }
+      } else {
+        this.open({
+          url: file
+        });
+      }
     } else {
       this._hideViewBookmark();
     }

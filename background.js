@@ -124,3 +124,38 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
   }
 });
+
+// Optimized chunk-based base64 encoder that avoids stack size limits
+function bufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  const chunkSize = 8192;
+  for (let i = 0; i < len; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  return btoa(binary);
+}
+
+// Bypass CORS restrictions for remote PDF files by fetching them via the background service worker
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'fetchPdf') {
+    fetch(message.url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.arrayBuffer();
+      })
+      .then(buffer => {
+        const base64 = bufferToBase64(buffer);
+        sendResponse({ success: true, data: base64 });
+      })
+      .catch(error => {
+        console.error('Freedom PDF Viewer: Error fetching remote PDF:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true; // Keep the message channel open for async response
+  }
+});
