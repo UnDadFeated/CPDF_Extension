@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.5.1] — 2026-05-29
+
+### Fixed
+- **🧹 Clean UI (Removed File Access Warning Card):** Completely removed the local file access warning card container and associated checking logic from the popup. The interface is now clean and non-blocking under all user conditions.
+
 ## [3.5.0] — 2026-05-29
 
 ### Fixed
