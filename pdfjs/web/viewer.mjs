@@ -19628,14 +19628,10 @@ function webViewerLoad() {
             hasFields = true;
           }
           if (!hasFields) {
-            const numPages = pdfDoc.numPages;
-            for (let i = 1; i <= numPages; i++) {
-              const page = await pdfDoc.getPage(i);
-              const annotations = await page.getAnnotations();
-              if (annotations.some(a => a.subtype === "Widget")) {
-                hasFields = true;
-                break;
-              }
+            // Check direct document metadata (which is extremely fast and pre-parsed in catalog)
+            const metadata = await pdfDoc.getMetadata().catch(() => null);
+            if (metadata?.info?.IsAcroFormPresent || metadata?.info?.IsXFAPresent) {
+              hasFields = true;
             }
           }
           if (hasFields) {

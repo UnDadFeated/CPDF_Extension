@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.5.0] — 2026-05-29
+
+### Fixed
+- **⚡ Instant PDF Loading (Optimized Form Detection):** Replaced the slow sequential page-by-page annotation scanning loop with a fast, non-blocking check utilizing the pre-parsed catalog metadata (`pdfDoc.getMetadata()`). This completely resolves PDF opening hangs and loading screen suppression on all files.
+
 ## [3.4.9] — 2026-05-28
 
 ### Fixed
