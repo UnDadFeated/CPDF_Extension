@@ -1,5 +1,57 @@
 # Changelog
 
+## [3.6.0] — 2026-06-05
+
+### Changed
+- **🧪 Removed integration test runner button:** Cleaned up the Chrome Extension popup UI by removing the "Run Tests" button, related CSS classes, and event listener, keeping the test runner code local-only.
+
+### Improved
+- **🧹 Cleaned up duplicate code:** Refactored duplicate click handlers in `popup.js` to share a common `openViewer` helper function.
+
+## [3.5.9] — 2026-05-29
+
+### Fixed
+- **🛡️ Secure sandboxed localStorage (safeStorage helper):** Wrapped all custom extension `localStorage` reads and writes in a robust catch-all safety wrapper. This prevents `SecurityError` DOMExceptions and runtime crashes when running under sandboxed local schemes (like iframe testing environments).
+
+### Added
+- **🧪 Automated Custom Button Verification Tests:** Added a comprehensive automated integration test suite ("Test 6") in the test runner that asserts and verifies the click and toggle states of all custom buttons one-by-one (Theme cycling, sidebar Pages/Bookmarks, Single-page layout, Scroll mode, Fullscreen view, Top toolbar hide/show, Auto-hide timer, and SpeechSynthesis).
+
+## [3.5.8] — 2026-05-29
+
+### Fixed
+- **🔇 Quiet L10n Warning Spam:** Commented out noisy `[fluent]` translation console warnings in `viewer.mjs` to keep Chrome's Developer Tools console clean and free of hundreds of missing translation warnings.
+
+## [3.5.7] — 2026-05-29
+
+### Fixed
+- **🎨 Theme Cycling DOMException:** Checked that class names are not empty before passing them to `classList.remove` during theme initialization and cycling, preventing a standard `DOMException` when loading the Light theme.
+
+## [3.5.6] — 2026-05-29
+
+### Added
+- **🛡️ Restored File Scheme Access Warning:** Added back the helpful warning card container and associated checking logic to the extension popup to guide users on enabling local file scheme access for drag-and-drop.
+
+## [3.5.5] — 2026-05-29
+
+### Fixed
+- **🧹 Uncaught SyntaxError (Illegal break statement):** Removed an accidental extra closing brace in the onKeyDown escape key handler inside `viewer.mjs` that had broken JavaScript compilation when opening files.
+
+## [3.5.4] — 2026-05-29
+
+### Added
+- **🧪 Bundled Sample PDF Testing:** Switched the integration test suite to fetch and load the local bundled `test/pdf-sample_0.pdf` resource via `chrome.runtime.getURL()` instead of requesting it from AWS S3 over the network. This makes the entire test runner fully offline-capable, highly secure, and exceptionally performant.
+
+## [3.5.3] — 2026-05-29
+
+### Improved
+- **📝 Static Integration Test Versioning:** Statically hardcoded the current version number (`v3.5.3`) directly into the HTML `<title>` and `<h1>` headings of the test runner so that the version is clearly visible even when running under the fallback `file://` protocol where dynamic manifest-retrieval is blocked.
+
+## [3.5.2] — 2026-05-29
+
+### Added
+- **🧪 Convenient Integration Testing Quick-Launch:** Added a gorgeous purple "Run Tests" button directly in the extension popup. This button opens the integration tests page inside the correct Chrome extension context automatically, avoiding the manual and error-prone process of copying the Extension ID and navigating to it manually.
+- **📝 Enhanced Test Environment Diagnostics:** Updated the environment error warning on the testing page to clearly guide developers on how to use the new popup button or load the unpacked extension.
+
 ## [3.5.1] — 2026-05-29
 
 ### Fixed

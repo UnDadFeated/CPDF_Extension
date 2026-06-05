@@ -2681,17 +2681,17 @@ class Localization {
       if (missingIds.size === 0) {
         break;
       }
-      if (typeof console !== "undefined") {
+      /* if (typeof console !== "undefined") {
         const locale = bundle.locales[0];
         const ids = Array.from(missingIds).join(", ");
         console.warn(`[fluent] Missing translations in ${locale}: ${ids}`);
-      }
+      } */
     }
-    if (!hasAtLeastOneBundle && typeof console !== "undefined") {
+    /* if (!hasAtLeastOneBundle && typeof console !== "undefined") {
       console.warn(`[fluent] Request for keys failed because no resource bundles got generated.
   keys: ${JSON.stringify(keys)}.
   resourceIds: ${JSON.stringify(this.resourceIds)}.`);
-    }
+    } */
     return translations;
   }
   formatMessages(keys) {
@@ -2758,11 +2758,11 @@ function keysFromBundle(method, bundle, keys, translations) {
     if (message) {
       messageErrors.length = 0;
       translations[i] = method(bundle, messageErrors, message, args);
-      if (messageErrors.length > 0 && typeof console !== "undefined") {
+      /* if (messageErrors.length > 0 && typeof console !== "undefined") {
         const locale = bundle.locales[0];
         const errors = messageErrors.join(", ");
         console.warn(`[fluent][resolver] errors in ${locale}/${id}: ${errors}.`);
-      }
+      } */
     } else {
       missingIds.add(id);
     }
@@ -19173,7 +19173,6 @@ function onKeyDown(evt) {
           document.getElementById("fsToggleBtn")?.click();
           handled = true;
         }
-        }
         if (!this.supportsIntegratedFind && this.findBar?.opened) {
           this.findBar.close();
           handled = true;
@@ -19575,6 +19574,21 @@ function webViewerLoad() {
   PDFViewerApplication.initializedPromise.then(() => {
     const _eventBus = PDFViewerApplication.eventBus;
 
+    const safeStorage = {
+      getItem(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {
+          return null;
+        }
+      },
+      setItem(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {}
+      }
+    };
+
     // --- Rotate CW toolbar button ---
     try {
       const rotateCwBtn = document.getElementById("pageRotateCwToolbar");
@@ -19763,12 +19777,12 @@ function webViewerLoad() {
     const BOOKMARKS_KEY = "freedom.pdf.bookmarks";
     const getBookmarks = () => {
       try {
-        return JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
+        return JSON.parse(safeStorage.getItem(BOOKMARKS_KEY) || "[]");
       } catch { return []; }
     };
     const saveBookmarks = (bookmarks) => {
       try {
-        localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+        safeStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
       } catch {}
     };
 
@@ -20049,7 +20063,7 @@ function webViewerLoad() {
       const themeOrder = ["", "theme-dark", "theme-sepia", "theme-night"];
       const themeLabels = ["Light", "Dark", "Sepia", "Night"];
       const themeStorageKey = "freedom.pdf.theme";
-      let currentThemeIndex = parseInt(localStorage.getItem(themeStorageKey) || "0", 10);
+      let currentThemeIndex = parseInt(safeStorage.getItem(themeStorageKey) || "0", 10);
       if (isNaN(currentThemeIndex) || currentThemeIndex < 0 || currentThemeIndex >= themeOrder.length) {
         currentThemeIndex = 0;
       }
@@ -20057,12 +20071,14 @@ function webViewerLoad() {
       const applyTheme = (index) => {
         const outer = document.getElementById("outerContainer");
         if (!outer) return;
-        themeOrder.forEach(t => outer.classList.remove(t));
+        themeOrder.forEach(t => {
+          if (t) outer.classList.remove(t);
+        });
         if (index > 0 && themeOrder[index]) {
           outer.classList.add(themeOrder[index]);
         }
         currentThemeIndex = index;
-        localStorage.setItem(themeStorageKey, index.toString());
+        safeStorage.setItem(themeStorageKey, index.toString());
         
         const secBtn = document.getElementById("secondaryThemeToggleBtn");
         if (secBtn) secBtn.title = `Theme: ${themeLabels[index]}`;
@@ -20093,7 +20109,7 @@ function webViewerLoad() {
     try {
       _eventBus.on("documentloaded", () => {
         try {
-          const savedZoom = localStorage.getItem("freedom.pdf.zoom");
+          const savedZoom = safeStorage.getItem("freedom.pdf.zoom");
           if (savedZoom && parseFloat(savedZoom) > 0) {
             PDFViewerApplication.pdfViewer.currentScaleValue = parseFloat(savedZoom);
           } else {
@@ -20105,7 +20121,7 @@ function webViewerLoad() {
       // --- Remember last zoom level ---
       _eventBus.on("scalechanging", (evt) => {
         try {
-          localStorage.setItem("freedom.pdf.zoom", evt.scale || PDFViewerApplication.pdfViewer.currentScale);
+          safeStorage.setItem("freedom.pdf.zoom", evt.scale || PDFViewerApplication.pdfViewer.currentScale);
         } catch (e) { /* ignore */ }
       }, { once: false });
     } catch (e) {
@@ -20163,7 +20179,7 @@ function webViewerLoad() {
           });
           showToast("Single page mode");
         } else {
-          const savedZoom = localStorage.getItem("freedom.pdf.zoom");
+          const savedZoom = safeStorage.getItem("freedom.pdf.zoom");
           const pages = document.querySelectorAll(".page");
           pages.forEach(p => {
             p.style.maxWidth = "";
@@ -20277,7 +20293,7 @@ function webViewerLoad() {
     try {
       const toolbar = document.getElementById("toolbarContainer");
       if (toolbar) {
-        let autoHideEnabled = localStorage.getItem("freedom.pdf.autohide") === "true";
+        let autoHideEnabled = safeStorage.getItem("freedom.pdf.autohide") === "true";
         let autoHideTimeout = null;
         let isMouseOverToolbar = false;
 
@@ -20312,7 +20328,7 @@ function webViewerLoad() {
 
         const toggleAutoHide = () => {
           autoHideEnabled = !autoHideEnabled;
-          localStorage.setItem("freedom.pdf.autohide", autoHideEnabled.toString());
+          safeStorage.setItem("freedom.pdf.autohide", autoHideEnabled.toString());
           
           const secBtn = document.getElementById("secondaryAutoHideToolbarBtn");
           const leftBtn = document.getElementById("leftAutoHideToolbarBtn");
