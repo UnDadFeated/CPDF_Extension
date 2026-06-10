@@ -1,6 +1,6 @@
-# Freedom PDF Viewer Extension (v3.6.0)
+# Freedom PDF Viewer Extension (v3.6.1)
 
-![Version](https://img.shields.io/badge/version-3.6.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.6.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -22,7 +22,7 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 
 ## 🚀 Getting Started
 
-1. Download the [Freedom_PDF_Viewer_v3.6.0.zip](https://github.com/UnDadFeated/Freedom_PDF_Viewer/releases) from the Releases page.
+1. Download the [Freedom_PDF_Viewer_v3.6.1.zip](https://github.com/UnDadFeated/Freedom_PDF_Viewer/releases) from the Releases page.
 2. Unzip the file into a folder on your computer.
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **Developer mode** in the top right corner.
@@ -37,7 +37,7 @@ To package the extension for upload to the Chrome Web Store, run the included `b
 chmod +x build.sh && ./build.sh
 ```
 
-It will compress the necessary files into `Freedom_PDF_Viewer_v3.6.0.zip`, deliberately excluding development files like `.git`.
+It will compress the necessary files into `Freedom_PDF_Viewer_v3.6.1.zip`, deliberately excluding development files like `.git`.
 
 ## 🔐 Permissions
 

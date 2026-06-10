@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.6.1] — 2026-06-10
+
+### Added
+- **💬 Button hover tool-tips:** Added descriptive hover tool-tips (HTML `title` attributes) to all remaining primary and secondary buttons, sidebar switches, and extension popup controls.
+
 ## [3.6.0] — 2026-06-05
 
 ### Changed

@@ -48,7 +48,7 @@ See https://github.com/adobe-type-tools/cmap-resources
             <div id="toolbarViewerLeft" class="toolbarHorizontalGroup">
               <button id="viewsManagerToggleButton" class="toolbarButton labeled" type="button" tabindex="0"
                 data-l10n-id="pdfjs-toggle-views-manager-button" aria-expanded="false" aria-haspopup="true"
-                aria-controls="viewsManager">
+                aria-controls="viewsManager" title="Toggle Sidebar">
                 <span data-l10n-id="pdfjs-toggle-views-manager-button-label"></span>
               </button>
               <div id="viewsManager" class="menuContainer sidebar" hidden="true" role="dialog"
@@ -59,32 +59,32 @@ See https://github.com/adobe-type-tools/cmap-resources
                       <button class="toolbarButton viewsManagerButton hasPopupMenu" type="button"
                         id="viewsManagerSelectorButton" tabindex="0"
                         data-l10n-id="pdfjs-views-manager-view-selector-button" aria-expanded="false"
-                        aria-haspopup="listbox" aria-controls="viewsManagerSelectorOptions">
+                        aria-haspopup="listbox" aria-controls="viewsManagerSelectorOptions" title="Select View Mode">
                         <span data-l10n-id="pdfjs-views-manager-view-selector-button-label"></span>
                       </button>
                       <menu id="viewsManagerSelectorOptions" role="listbox" class="popupMenu withMark">
                         <li>
-                          <button id="thumbnailsViewMenu" role="option" type="button" tabindex="-1">
+                          <button id="thumbnailsViewMenu" role="option" type="button" tabindex="-1" title="Show Pages (Thumbnails)">
                             <span data-l10n-id="pdfjs-views-manager-pages-option-label"></span>
                           </button>
                         </li>
                    <li>
-                        <button id="outlinesViewMenu" role="option" type="button" tabindex="-1">
+                        <button id="outlinesViewMenu" role="option" type="button" tabindex="-1" title="Show Document Outline">
                           <span data-l10n-id="pdfjs-views-manager-outlines-option-label"></span>
                         </button>
                       </li>
                       <li>
-                        <button id="bookmarksViewMenu" role="option" type="button" tabindex="-1">
+                        <button id="bookmarksViewMenu" role="option" type="button" tabindex="-1" title="Show Bookmarks">
                           <span>Bookmarks</span>
                         </button>
                       </li>
                         <li>
-                          <button id="attachmentsViewMenu" role="option" type="button" tabindex="-1">
+                          <button id="attachmentsViewMenu" role="option" type="button" tabindex="-1" title="Show Attachments">
                             <span data-l10n-id="pdfjs-views-manager-attachments-option-label"></span>
                           </button>
                         </li>
                         <li>
-                          <button id="layersViewMenu" role="option" type="button" tabindex="-1">
+                          <button id="layersViewMenu" role="option" type="button" tabindex="-1" title="Show Layers">
                             <span data-l10n-id="pdfjs-views-manager-layers-option-label"></span>
                           </button>
                         </li>
@@ -92,11 +92,11 @@ See https://github.com/adobe-type-tools/cmap-resources
                     </div>
                     <span id="viewsManagerHeaderLabel" class="viewsManagerLabel"></span>
                     <button id="viewsManagerAddFileButton" class="toolbarButton viewsManagerButton" type="button"
-                      tabindex="0" data-l10n-id="pdfjs-views-manager-add-file-button" hidden="true">
+                      tabindex="0" data-l10n-id="pdfjs-views-manager-add-file-button" hidden="true" title="Add File">
                       <span data-l10n-id="pdfjs-views-manager-add-file-button-label"></span>
                     </button>
                     <button id="viewsManagerCurrentOutlineButton" class="toolbarButton viewsManagerButton" type="button"
-                      tabindex="0" data-l10n-id="pdfjs-current-outline-item-button" hidden="true">
+                      tabindex="0" data-l10n-id="pdfjs-current-outline-item-button" hidden="true" title="Find Current Outline Item">
                       <span data-l10n-id="pdfjs-current-outline-item-button-label"></span>
                     </button>
                   </div>
@@ -107,31 +107,31 @@ See https://github.com/adobe-type-tools/cmap-resources
                       <div id="actionSelector">
                         <button id="viewsManagerStatusActionButton" class="viewsManagerButton hasPopupMenu"
                           type="button" tabindex="0" aria-haspopup="menu"
-                          aria-controls="viewsManagerStatusActionOptions" aria-expanded="false">
+                          aria-controls="viewsManagerStatusActionOptions" aria-expanded="false" title="Page Actions">
                           <span data-l10n-id="pdfjs-views-manager-pages-status-action-button-label"></span>
                         </button>
                         <menu id="viewsManagerStatusActionOptions" class="popupMenu">
                           <li>
                             <button id="viewsManagerStatusActionCopy" class="noIcon" role="menuitem" type="button"
-                              tabindex="0" disabled>
+                              tabindex="0" disabled title="Copy Page">
                               <span data-l10n-id="pdfjs-views-manager-pages-status-copy-button-label"></span>
                             </button>
                           </li>
                           <li>
                             <button id="viewsManagerStatusActionCut" class="noIcon" role="menuitem" type="button"
-                              tabindex="0" disabled>
+                              tabindex="0" disabled title="Cut Page">
                               <span data-l10n-id="pdfjs-views-manager-pages-status-cut-button-label"></span>
                             </button>
                           </li>
                           <li>
                             <button id="viewsManagerStatusActionDelete" class="noIcon" role="menuitem" type="button"
-                              tabindex="0" disabled>
+                              tabindex="0" disabled title="Delete Page">
                               <span data-l10n-id="pdfjs-views-manager-pages-status-delete-button-label"></span>
                             </button>
                           </li>
                           <li>
                             <button id="viewsManagerStatusActionSaveAs" class="noIcon" role="menuitem" type="button"
-                              tabindex="0" disabled>
+                              tabindex="0" disabled title="Save Page As...">
                               <span data-l10n-id="pdfjs-views-manager-pages-status-save-as-button-label"></span>
                             </button>
                           </li>
@@ -142,12 +142,12 @@ See https://github.com/adobe-type-tools/cmap-resources
                       <span class="viewsManagerStatusLabel" data-l10n-id="pdfjs-views-manager-status-undo-cut-label"
                         data-l10n-args='{"count": 0}'></span>
                       <div>
-                        <button id="viewsManagerStatusUndoButton" class="viewsManagerButton" type="button" tabindex="0">
+                        <button id="viewsManagerStatusUndoButton" class="viewsManagerButton" type="button" tabindex="0" title="Undo">
                           <span data-l10n-id="pdfjs-views-manager-status-undo-button-label"></span>
                         </button>
                         <button id="viewsManagerStatusUndoCloseButton"
                           class="toolbarButton viewsManagerButton viewsCloseButton" type="button" tabindex="0"
-                          data-l10n-id="pdfjs-views-manager-status-close-button">
+                          data-l10n-id="pdfjs-views-manager-status-close-button" title="Close">
                           <span data-l10n-id="pdfjs-views-manager-status-close-button-label"></span>
                         </button>
                       </div>
@@ -156,7 +156,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                       <span class="viewsManagerStatusLabel"></span>
                       <button id="viewsManagerStatusWarningCloseButton"
                         class="toolbarButton viewsManagerButton viewsCloseButton" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-views-manager-status-close-button">
+                        data-l10n-id="pdfjs-views-manager-status-close-button" title="Close">
                         <span data-l10n-id="pdfjs-views-manager-status-close-button-label"></span>
                       </button>
                     </div>
@@ -164,7 +164,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                       <span class="viewsManagerStatusLabel"></span>
                       <button id="viewsManagerStatusWaitingCloseButton"
                         class="toolbarButton viewsManagerButton viewsCloseButton" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-views-manager-status-close-button">
+                        data-l10n-id="pdfjs-views-manager-status-close-button" title="Close">
                         <span data-l10n-id="pdfjs-views-manager-status-close-button-label"></span>
                       </button>
                     </div>
@@ -185,7 +185,7 @@ See https://github.com/adobe-type-tools/cmap-resources
               <div class="toolbarButtonSpacer"></div>
               <div class="toolbarButtonWithContainer">
                 <button id="viewFindButton" class="toolbarButton labeled" type="button" tabindex="0"
-                  data-l10n-id="pdfjs-findbar-button" aria-expanded="false" aria-controls="findbar">
+                  data-l10n-id="pdfjs-findbar-button" aria-expanded="false" aria-controls="findbar" title="Find in document">
                   <span data-l10n-id="pdfjs-findbar-button-label"></span>
                 </button>
                 <div class="hidden doorHanger toolbarHorizontalGroup" id="findbar">
@@ -196,12 +196,12 @@ See https://github.com/adobe-type-tools/cmap-resources
                     </span>
                     <div class="toolbarHorizontalGroup">
                       <button id="findPreviousButton" class="toolbarButton" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-find-previous-button">
+                        data-l10n-id="pdfjs-find-previous-button" title="Previous match">
                         <span data-l10n-id="pdfjs-find-previous-button-label"></span>
                       </button>
                       <div class="splitToolbarButtonSeparator"></div>
                       <button id="findNextButton" class="toolbarButton" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-find-next-button">
+                        data-l10n-id="pdfjs-find-next-button" title="Next match">
                         <span data-l10n-id="pdfjs-find-next-button-label"></span>
                       </button>
                     </div>
@@ -238,11 +238,11 @@ See https://github.com/adobe-type-tools/cmap-resources
               </div>
               <div class="toolbarHorizontalGroup hiddenSmallView">
                 <button class="toolbarButton labeled" type="button" id="previous" tabindex="0"
-                  data-l10n-id="pdfjs-previous-button">
+                  data-l10n-id="pdfjs-previous-button" title="Previous Page">
                   <span data-l10n-id="pdfjs-previous-button-label"></span>
                 </button>
                 <div class="splitToolbarButtonSeparator"></div>
-                <button class="toolbarButton labeled" type="button" id="next" tabindex="0" data-l10n-id="pdfjs-next-button">
+                <button class="toolbarButton labeled" type="button" id="next" tabindex="0" data-l10n-id="pdfjs-next-button" title="Next Page">
                   <span data-l10n-id="pdfjs-next-button-label"></span>
                 </button>
               </div>
@@ -257,12 +257,12 @@ See https://github.com/adobe-type-tools/cmap-resources
             <div id="toolbarViewerMiddle" class="toolbarHorizontalGroup">
               <div class="toolbarHorizontalGroup">
                 <button id="zoomOutButton" class="toolbarButton labeled" type="button" tabindex="0"
-                  data-l10n-id="pdfjs-zoom-out-button">
+                  data-l10n-id="pdfjs-zoom-out-button" title="Zoom Out">
                   <span data-l10n-id="pdfjs-zoom-out-button-label"></span>
                 </button>
                 <div class="splitToolbarButtonSeparator"></div>
                 <button id="zoomInButton" class="toolbarButton labeled" type="button" tabindex="0"
-                  data-l10n-id="pdfjs-zoom-in-button">
+                  data-l10n-id="pdfjs-zoom-in-button" title="Zoom In">
                   <span data-l10n-id="pdfjs-zoom-in-button-label"></span>
                 </button>
               </div>
@@ -299,7 +299,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorComment" class="toolbarButtonWithContainer" hidden="true">
                   <button id="editorCommentButton" class="toolbarButton" type="button" tabindex="0" disabled="disabled"
                     aria-expanded="false" aria-haspopup="true" aria-controls="editorCommentParamsToolbar"
-                    data-l10n-id="pdfjs-editor-comment-button">
+                    data-l10n-id="pdfjs-editor-comment-button" title="Add Comment">
                     <span data-l10n-id="pdfjs-editor-comment-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden menu" id="editorCommentParamsToolbar">
@@ -314,7 +314,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                           <span id="editorCommentsSidebarCount"></span>
                         </span>
                         <button id="editorCommentsSidebarCloseButton" type="button" tabindex="0"
-                          data-l10n-id="pdfjs-editor-comments-sidebar-close-button">
+                          data-l10n-id="pdfjs-editor-comments-sidebar-close-button" title="Close">
                           <span data-l10n-id="pdfjs-editor-comments-sidebar-close-button-label"></span>
                         </button>
                       </div>
@@ -328,7 +328,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorInk" class="toolbarButtonWithContainer">
                   <button id="editorInkButton" class="toolbarButton" type="button" disabled="disabled"
                     aria-expanded="false" aria-haspopup="true" aria-controls="editorInkParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-ink-button">
+                    data-l10n-id="pdfjs-editor-ink-button" title="Draw">
                     <span data-l10n-id="pdfjs-editor-ink-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden doorHangerRight" id="editorInkParamsToolbar">
@@ -357,7 +357,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorFreeText" class="toolbarButtonWithContainer">
                   <button id="editorFreeTextButton" class="toolbarButton" type="button" disabled="disabled"
                     aria-expanded="false" aria-haspopup="true" aria-controls="editorFreeTextParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-free-text-button">
+                    data-l10n-id="pdfjs-editor-free-text-button" title="Add Text">
                     <span data-l10n-id="pdfjs-editor-free-text-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden doorHangerRight" id="editorFreeTextParamsToolbar">
@@ -380,7 +380,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorHighlight" class="toolbarButtonWithContainer">
                   <button id="editorHighlightButton" class="toolbarButton" type="button" disabled="disabled"
                     aria-expanded="false" aria-haspopup="true" aria-controls="editorHighlightParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-highlight-button">
+                    data-l10n-id="pdfjs-editor-highlight-button" title="Highlight">
                     <span data-l10n-id="pdfjs-editor-highlight-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden doorHangerRight" id="editorHighlightParamsToolbar">
@@ -414,14 +414,14 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorSignature" class="toolbarButtonWithContainer" hidden="true">
                   <button id="editorSignatureButton" class="toolbarButton" type="button" tabindex="0"
                     disabled="disabled" aria-expanded="false" aria-haspopup="true"
-                    aria-controls="editorSignatureParamsToolbar" data-l10n-id="pdfjs-editor-signature-button">
+                    aria-controls="editorSignatureParamsToolbar" data-l10n-id="pdfjs-editor-signature-button" title="Add Signature">
                     <span data-l10n-id="pdfjs-editor-signature-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden doorHangerRight menu" id="editorSignatureParamsToolbar">
                     <div id="addSignatureDoorHanger" class="menuContainer" role="region"
                       data-l10n-id="pdfjs-editor-add-signature-container">
                       <button id="editorSignatureAddSignature" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-editor-signature-add-signature-button">
+                        data-l10n-id="pdfjs-editor-signature-add-signature-button" title="Create Signature">
                         <span data-l10n-id="pdfjs-editor-signature-add-signature-button-label"
                           class="editorParamsLabel"></span>
                       </button>
@@ -431,13 +431,13 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <div id="editorStamp" class="toolbarButtonWithContainer">
                   <button id="editorStampButton" class="toolbarButton" type="button" disabled="disabled"
                     aria-expanded="false" aria-haspopup="true" aria-controls="editorStampParamsToolbar" tabindex="0"
-                    data-l10n-id="pdfjs-editor-stamp-button">
+                    data-l10n-id="pdfjs-editor-stamp-button" title="Add Image">
                     <span data-l10n-id="pdfjs-editor-stamp-button-label"></span>
                   </button>
                   <div class="editorParamsToolbar hidden doorHangerRight menu" id="editorStampParamsToolbar">
                     <div class="menuContainer">
                       <button id="editorStampAddImage" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-editor-stamp-add-image-button">
+                        data-l10n-id="pdfjs-editor-stamp-add-image-button" title="Upload Image">
                         <span class="editorParamsLabel" data-l10n-id="pdfjs-editor-stamp-add-image-button-label"></span>
                       </button>
                     </div>
@@ -499,24 +499,24 @@ See https://github.com/adobe-type-tools/cmap-resources
               <div id="secondaryToolbarToggle" class="toolbarButtonWithContainer">
                 <button id="secondaryToolbarToggleButton" class="toolbarButton labeled" type="button" tabindex="0"
                   data-l10n-id="pdfjs-tools-button" aria-expanded="false" aria-haspopup="true"
-                  aria-controls="secondaryToolbar">
+                  aria-controls="secondaryToolbar" title="Tools">
                   <span data-l10n-id="pdfjs-tools-button-label"></span>
                 </button>
                 <div id="secondaryToolbar" class="hidden doorHangerRight menu">
                   <div id="secondaryToolbarButtonContainer" class="menuContainer">
                     <button id="secondaryOpenFile" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-open-file-button">
+                      data-l10n-id="pdfjs-open-file-button" title="Open File">
                       <span data-l10n-id="pdfjs-open-file-button-label"></span>
                     </button>
 
                     <div class="visibleMediumView">
                       <button id="secondaryPrint" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-print-button">
+                        data-l10n-id="pdfjs-print-button" title="Print">
                         <span data-l10n-id="pdfjs-print-button-label"></span>
                       </button>
 
                       <button id="secondarySave" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-save-button">
+                        data-l10n-id="pdfjs-save-button" title="Save">
                         <span data-l10n-id="pdfjs-save-button-label"></span>
                       </button>
 
@@ -525,7 +525,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                     <div class="horizontalToolbarSeparator"></div>
 
                     <button id="presentationMode" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-presentation-mode-button">
+                      data-l10n-id="pdfjs-presentation-mode-button" title="Presentation Mode">
                       <span data-l10n-id="pdfjs-presentation-mode-button-label"></span>
                     </button>
 
@@ -614,29 +614,29 @@ See https://github.com/adobe-type-tools/cmap-resources
                </button>
 
               <a href="#" id="viewBookmark" class="toolbarButton labeled" tabindex="0"
-                data-l10n-id="pdfjs-bookmark-button">
+                data-l10n-id="pdfjs-bookmark-button" title="Current View">
                 <span data-l10n-id="pdfjs-bookmark-button-label"></span>
               </a>
 
                     <div id="viewBookmarkSeparator" class="horizontalToolbarSeparator"></div>
 
                     <button id="firstPage" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-first-page-button">
+                      data-l10n-id="pdfjs-first-page-button" title="Go to First Page">
                       <span data-l10n-id="pdfjs-first-page-button-label"></span>
                     </button>
                     <button id="lastPage" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-last-page-button">
+                      data-l10n-id="pdfjs-last-page-button" title="Go to Last Page">
                       <span data-l10n-id="pdfjs-last-page-button-label"></span>
                     </button>
 
                     <div class="horizontalToolbarSeparator"></div>
 
                     <button id="pageRotateCw" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-page-rotate-cw-button">
+                      data-l10n-id="pdfjs-page-rotate-cw-button" title="Rotate Clockwise">
                       <span data-l10n-id="pdfjs-page-rotate-cw-button-label"></span>
                     </button>
                     <button id="pageRotateCcw" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-page-rotate-ccw-button">
+                      data-l10n-id="pdfjs-page-rotate-ccw-button" title="Rotate Counterclockwise">
                       <span data-l10n-id="pdfjs-page-rotate-ccw-button-label"></span>
                     </button>
 
@@ -644,11 +644,11 @@ See https://github.com/adobe-type-tools/cmap-resources
 
                     <div id="cursorToolButtons" role="radiogroup">
                       <button id="cursorSelectTool" class="toolbarButton labeled toggled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-cursor-text-select-tool-button" role="radio" aria-checked="true">
+                        data-l10n-id="pdfjs-cursor-text-select-tool-button" role="radio" aria-checked="true" title="Text Selection Tool">
                         <span data-l10n-id="pdfjs-cursor-text-select-tool-button-label"></span>
                       </button>
                       <button id="cursorHandTool" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-cursor-hand-tool-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-cursor-hand-tool-button" role="radio" aria-checked="false" title="Hand Tool">
                         <span data-l10n-id="pdfjs-cursor-hand-tool-button-label"></span>
                       </button>
                     </div>
@@ -657,19 +657,19 @@ See https://github.com/adobe-type-tools/cmap-resources
 
                     <div id="scrollModeButtons" role="radiogroup">
                       <button id="scrollPage" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-scroll-page-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-scroll-page-button" role="radio" aria-checked="false" title="Page Scrolling">
                         <span data-l10n-id="pdfjs-scroll-page-button-label"></span>
                       </button>
                       <button id="scrollVertical" class="toolbarButton labeled toggled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-scroll-vertical-button" role="radio" aria-checked="true">
+                        data-l10n-id="pdfjs-scroll-vertical-button" role="radio" aria-checked="true" title="Vertical Scrolling">
                         <span data-l10n-id="pdfjs-scroll-vertical-button-label"></span>
                       </button>
                       <button id="scrollHorizontal" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-scroll-horizontal-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-scroll-horizontal-button" role="radio" aria-checked="false" title="Horizontal Scrolling">
                         <span data-l10n-id="pdfjs-scroll-horizontal-button-label"></span>
                       </button>
                       <button id="scrollWrapped" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-scroll-wrapped-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-scroll-wrapped-button" role="radio" aria-checked="false" title="Wrapped Scrolling">
                         <span data-l10n-id="pdfjs-scroll-wrapped-button-label"></span>
                       </button>
                     </div>
@@ -678,15 +678,15 @@ See https://github.com/adobe-type-tools/cmap-resources
 
                     <div id="spreadModeButtons" role="radiogroup">
                       <button id="spreadNone" class="toolbarButton labeled toggled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-spread-none-button" role="radio" aria-checked="true">
+                        data-l10n-id="pdfjs-spread-none-button" role="radio" aria-checked="true" title="No Spreads">
                         <span data-l10n-id="pdfjs-spread-none-button-label"></span>
                       </button>
                       <button id="spreadOdd" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-spread-odd-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-spread-odd-button" role="radio" aria-checked="false" title="Odd Spreads">
                         <span data-l10n-id="pdfjs-spread-odd-button-label"></span>
                       </button>
                       <button id="spreadEven" class="toolbarButton labeled" type="button" tabindex="0"
-                        data-l10n-id="pdfjs-spread-even-button" role="radio" aria-checked="false">
+                        data-l10n-id="pdfjs-spread-even-button" role="radio" aria-checked="false" title="Even Spreads">
                         <span data-l10n-id="pdfjs-spread-even-button-label"></span>
                       </button>
                     </div>
@@ -700,7 +700,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                     <div class="horizontalToolbarSeparator"></div>
 
                     <button id="documentProperties" class="toolbarButton labeled" type="button" tabindex="0"
-                      data-l10n-id="pdfjs-document-properties-button" aria-controls="documentPropertiesDialog">
+                      data-l10n-id="pdfjs-document-properties-button" aria-controls="documentPropertiesDialog" title="Document Properties...">
                       <span data-l10n-id="pdfjs-document-properties-button-label"></span>
                     </button>
                   </div>
