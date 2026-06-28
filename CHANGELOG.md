@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.6.3] — 2026-06-28
+
+### Added
+- **📂 Trigger file picker on load**: Appended `openLocal=true` check to programmatically trigger the viewer's file picker.
+
+### Fixed
+- **🔴 High - Unified URL Parsing**: Converted context menu and page navigation handlers to use a shared `buildViewerUrl` helper that preserves complex URL fragments.
+- **🔴 High - Safe Service Worker Fetch**: Capped the background proxy fetch payload to 50 MB to prevent service worker OOM crashes.
+- **🟡 Medium - MV3 Permission Check**: Replaced deprecated `chrome.extension.isAllowedFileSchemeAccess` with recommended `chrome.permissions.contains` API.
+- **🟡 Medium - Local PDF Button UX**: Wired "Open Local PDF" button to open the viewer with `openLocal=true`, immediately prompting with the file picker.
+- **🟢 Low - SW-Termination Error Boundary**: Added a 15-second response timeout to the viewer's `fetchPdf` relay query to prevent page hangs on worker termination.
+
 ## [3.6.2] — 2026-06-28
 
 ### Added

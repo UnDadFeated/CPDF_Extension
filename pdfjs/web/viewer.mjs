@@ -17575,7 +17575,11 @@ const PDFViewerApplication = {
           // has host_permissions) and receive the PDF as a base64 string.
           try {
             const swResponse = await new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                reject(new Error("Timeout waiting for background service worker response."));
+              }, 15000); // 15 seconds timeout
               chrome.runtime.sendMessage({ action: "fetchPdf", url: file }, (r) => {
+                clearTimeout(timer);
                 if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
                 else resolve(r);
               });
@@ -21059,6 +21063,18 @@ function webViewerLoad() {
       }
     } catch (e) {
       console.error("Freedom PDF Viewer: Error initializing Export Images:", e);
+    }
+
+    // Check if the URL has ?openLocal=true or ?open=true, and trigger the file picker
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("openLocal") === "true") {
+        setTimeout(() => {
+          PDFViewerApplication.eventBus.dispatch("openfile");
+        }, 500);
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error checking openLocal param:", e);
     }
   });
 }

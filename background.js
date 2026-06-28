@@ -65,15 +65,24 @@ function isTopLevelUserTabNavigation(details) {
 }
 
 /**
+ * Helper function to parse target PDF URL and construct the viewer path.
+ * Splits on the FIRST '#' character only, preserving any subsequent
+ * fragments (e.g., #page=2#anchor) and passing them outside the file param
+ * so PDF.js can parse them correctly for its own in-document navigation.
+ */
+function buildViewerUrl(url) {
+  const hashIdx = url.indexOf('#');
+  const baseUrl = hashIdx === -1 ? url : url.slice(0, hashIdx);
+  const fragment = hashIdx === -1 ? '' : url.slice(hashIdx + 1);
+  return `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
+}
+
+/**
  * Redirect the tab to our PDF viewer with the original URL
  * encoded as the `file` query parameter that PDF.js expects.
  */
 function openInViewer(tabId, url) {
-  // If the URL has a fragment (e.g. #page=2), keep it outside the 'file' param
-  // so that PDF.js can parse it correctly for its own navigation.
-  const [baseUrl, fragment] = url.split('#');
-  const redirectUrl = `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
-  chrome.tabs.update(tabId, { url: redirectUrl });
+  chrome.tabs.update(tabId, { url: buildViewerUrl(url) });
 }
 
 // ── Intercept navigations ────────────────────────────────────────────────────
@@ -98,6 +107,9 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 );
 
 chrome.runtime.onInstalled.addListener(() => {
+  // NOTE: Chrome context menu targetUrlPatterns are glob-only and case-sensitive.
+  // We can't match case-insensitive extensions (.PDF, .Pdf) without regex, which is
+  // not supported here. The webNavigation filter handles all intercept cases anyway.
   chrome.contextMenus.create({
     id: 'open-with-freedom-pdf',
     title: 'Open with Freedom PDF Viewer',
@@ -115,8 +127,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'open-with-freedom-pdf') {
-    const [baseUrl, fragment] = info.linkUrl.split('#');
-    const viewerUrl = `${VIEWER}?file=${encodeURIComponent(baseUrl)}${fragment ? '#' + fragment : ''}`;
+    const viewerUrl = buildViewerUrl(info.linkUrl);
     if (tab && tab.id) {
       chrome.tabs.update(tab.id, { url: viewerUrl });
     } else {
@@ -125,7 +136,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Optimized chunk-based base64 encoder that avoids stack size limits
+// Optimized chunk-based base64 encoder that avoids stack size limits.
+// Uses a chunk size of 8192 to prevent hitting V8 stack limits in
+// String.fromCharCode.apply, which would throw a RangeError on large buffers.
 function bufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -143,12 +156,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'fetchPdf') {
     fetch(message.url)
       .then(response => {
+        // Enforce a size limit to prevent background service worker OOM crashes.
+        // Chrome limits service worker heap size to ~100-200MB.
+        const len = parseInt(response.headers.get('content-length') || '0', 10);
+        if (len > 50 * 1024 * 1024) { // 50 MB cap
+          throw new Error('PDF file is too large to proxy (>50 MB). Please open the URL directly or download it.');
+        }
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.arrayBuffer();
       })
       .then(buffer => {
+        // Double check buffer size in case content-length header was missing
+        if (buffer.byteLength > 50 * 1024 * 1024) {
+          throw new Error('PDF file is too large to proxy (>50 MB). Please open the URL directly or download it.');
+        }
         const base64 = bufferToBase64(buffer);
         sendResponse({ success: true, data: base64 });
       })
