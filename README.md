@@ -1,6 +1,5 @@
-# Freedom PDF Viewer Extension (v3.6.1)
+# Freedom PDF Viewer Extension
 
-![Version](https://img.shields.io/badge/version-3.6.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-Extension-orange.svg)
 
@@ -15,14 +14,18 @@ A lightning-fast, ultra-lightweight PDF reader and annotator built as a Chrome E
 - **📂 Open from Popup:** Click "Open Local PDF" in the extension popup to browse and open a PDF — no drag-and-drop needed.
 - **🖱️ Right-Click to Open:** Right-click any PDF link on a web page and select "Open with Freedom PDF Viewer" to view it directly.
 - **🗑️ Delete Annotations:** Select an annotation and click the trash icon (or press Ctrl+D / Backspace) to remove it.
-- **🖊️ Rich Annotation Tools:** Use built-in PDF.js tools for freehand ink drawing, erasing, adding signatures, and injecting text natively.
+- **🖊️ Rich Annotation & Signing Tools:** Use built-in PDF.js tools for freehand ink drawing, highlight, underline, comments, and images, plus a custom drawing canvas modal to create and place signatures.
+- **✂️ True Page Reordering & Deletion:** Drag and drop page thumbnails to reorder pages, or hover and click `&times;` to delete pages, with changes written back to the PDF.
+- **➕ Merge PDFs:** Combine another local PDF file with the current document completely offline.
+- **📝 Watermarking:** Apply custom watermark text with customizable font size, color, and opacity across all pages.
+- **🖼️ Export to Image:** Render and export the current page as a high-quality PNG image.
 - **⚡ Blazing Fast:** Designed to be memory-efficient and open PDFs instantly.
 - **💾 Easy Saving:** Save your annotated PDFs (with annotations flattened) back to your computer with a single click via the **Save** button, or download the raw file via the **Download** button.
 - **📄 Default PDF Viewer:** Automatically intercepts PDF links (http/https), local file opens, and PDFs dragged and dropped into Chrome — opening them all in the Freedom viewer instead of Chrome's built-in renderer.
 
 ## 🚀 Getting Started
 
-1. Download the [Freedom_PDF_Viewer_v3.6.1.zip](https://github.com/UnDadFeated/Freedom_PDF_Viewer/releases) from the Releases page.
+1. Download the latest release `.zip` from the Releases page.
 2. Unzip the file into a folder on your computer.
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **Developer mode** in the top right corner.
@@ -37,7 +40,7 @@ To package the extension for upload to the Chrome Web Store, run the included `b
 chmod +x build.sh && ./build.sh
 ```
 
-It will compress the necessary files into `Freedom_PDF_Viewer_v3.6.1.zip`, deliberately excluding development files like `.git`.
+It will compress the necessary files into a versioned release `.zip` file, deliberately excluding development files like `.git`.
 
 ## 🔐 Permissions
 
