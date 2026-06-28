@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="3.6.1"
+VERSION="3.6.2"
 OUTPUT_ZIP="Freedom_PDF_Viewer_v${VERSION}.zip"
 
 echo "Building Freedom PDF Viewer v${VERSION} for release..."

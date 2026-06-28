@@ -9219,4 +9219,46 @@ body[data-pdfjsprinting] #printContainer {
   border-color: var(--sidebar-border-color) !important;
 }
 
+/* Custom Extensions: CSS styling */
+
+/* Modal Overrides */
+.customModal.hidden {
+  display: none !important;
+}
+
+/* Thumbnail Delete Page Button */
+#thumbnailsView .thumbnail {
+  position: relative !important;
+}
+
+#thumbnailsView .thumbnail:hover .thumbnail-delete-btn {
+  display: flex !important;
+}
+
+.thumbnail-delete-btn {
+  display: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: #ff3b30;
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+.thumbnail-delete-btn:hover {
+  background: #e02e24 !important;
+}
+
 

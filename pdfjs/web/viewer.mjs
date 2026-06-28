@@ -20617,6 +20617,449 @@ function webViewerLoad() {
     } catch (e) {
       console.error("Freedom PDF Viewer: Error initializing keyboard shortcuts:", e);
     }
+
+    // =========================================================================
+    // Freedom PDF Viewer — Custom Extensions: Advanced Offline PDF Features
+    // =========================================================================
+
+    // --- Helper function to convert dataURL to Blob ---
+    const dataURLtoBlob = (dataurl) => {
+      const arr = dataurl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], {type:mime});
+    };
+
+    // --- 1. True Page Reordering & Page Deletion ---
+    try {
+      const thumbsView = document.getElementById("thumbnailsView");
+      if (thumbsView) {
+        // Function to get the current list of page numbers from thumbnail DOM order
+        const getNewPageLayout = () => {
+          const thumbs = Array.from(thumbsView.querySelectorAll(".thumbnail"));
+          return thumbs.map(thumb => parseInt(thumb.getAttribute("page-number"), 10));
+        };
+
+        // Function to apply the page layout (delete/reorder)
+        const applyNewLayout = async (newOrder) => {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          showToast("Applying page changes...");
+          
+          try {
+            const pageNums0 = newOrder.map(p => p - 1);
+            const includePages = pageNums0.slice().sort((a, b) => a - b);
+            
+            const newPositionMap = {};
+            pageNums0.forEach((origPage, newPos) => {
+              newPositionMap[origPage] = newPos;
+            });
+            const pageIndices = includePages.map(origPage => newPositionMap[origPage]);
+            
+            const pageInfos = [{
+              document: null,
+              includePages: includePages,
+              pageIndices: pageIndices
+            }];
+            
+            const modifiedPdfBytes = await pdfDoc.extractPages(pageInfos);
+            const currentPage = PDFViewerApplication.page;
+            
+            await PDFViewerApplication.open({
+              data: modifiedPdfBytes,
+              originalUrl: PDFViewerApplication.url
+            });
+            
+            setTimeout(() => {
+              PDFViewerApplication.page = Math.min(currentPage, PDFViewerApplication.pdfDocument.numPages);
+            }, 300);
+            
+            showToast("Page layout updated successfully!");
+          } catch (err) {
+            console.error("Error applying layout changes:", err);
+            showToast("Error updating layout: " + err.message);
+          }
+        };
+
+        // Deleting page handler
+        const deletePage = async (pageNum) => {
+          const currentOrder = getNewPageLayout();
+          const newOrder = currentOrder.filter(p => p !== pageNum);
+          if (newOrder.length === 0) {
+            showToast("Cannot delete the last remaining page.");
+            return;
+          }
+          await applyNewLayout(newOrder);
+        };
+
+        // MutationObserver to add delete buttons on hover for thumbnails
+        const addDeleteButtonsToThumbnails = () => {
+          const thumbs = thumbsView.querySelectorAll(".thumbnail");
+          thumbs.forEach(thumb => {
+            if (!thumb.querySelector(".thumbnail-delete-btn")) {
+              const btn = document.createElement("button");
+              btn.className = "thumbnail-delete-btn";
+              btn.innerHTML = "&times;";
+              btn.title = "Delete page";
+              btn.type = "button";
+              
+              // Handle delete click
+              btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const pageNum = parseInt(thumb.getAttribute("page-number"), 10);
+                if (confirm(`Are you sure you want to delete Page ${pageNum}?`)) {
+                  await deletePage(pageNum);
+                }
+              });
+              thumb.appendChild(btn);
+            }
+          });
+        };
+
+        const thumbObserver = new MutationObserver(() => {
+          addDeleteButtonsToThumbnails();
+        });
+        thumbObserver.observe(thumbsView, { childList: true, subtree: true });
+        addDeleteButtonsToThumbnails();
+
+        // Listen for Drag/Drop events on thumbnails to trigger true reordering
+        let layoutTimer = null;
+        thumbsView.addEventListener("drop", () => {
+          if (layoutTimer) clearTimeout(layoutTimer);
+          layoutTimer = setTimeout(() => {
+            const newOrder = getNewPageLayout();
+            // Compare newOrder with sorted 1..N order to see if it changed
+            const isChanged = newOrder.some((val, idx) => val !== (idx + 1));
+            if (isChanged) {
+              applyNewLayout(newOrder);
+            }
+          }, 1500);
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Page Layout logic:", e);
+    }
+
+    // --- 2. Electronic Signing (Saved Signatures Modal) ---
+    try {
+      const signBtn = document.getElementById("customSignPdfBtn");
+      const signModal = document.getElementById("customSignatureModal");
+      const canvas = document.getElementById("signatureCanvas");
+      const clearBtn = document.getElementById("clearSignatureCanvasBtn");
+      const cancelBtn = document.getElementById("cancelSignatureBtn");
+      const saveBtn = document.getElementById("saveSignatureBtn");
+      
+      if (signBtn && signModal && canvas && clearBtn && cancelBtn && saveBtn) {
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+        
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        
+        const getMousePos = (canvasDom, touchOrMouseEvent) => {
+          const rect = canvasDom.getBoundingClientRect();
+          const clientX = touchOrMouseEvent.touches ? touchOrMouseEvent.touches[0].clientX : touchOrMouseEvent.clientX;
+          const clientY = touchOrMouseEvent.touches ? touchOrMouseEvent.touches[0].clientY : touchOrMouseEvent.clientY;
+          return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+          };
+        };
+        
+        canvas.addEventListener("mousedown", (e) => {
+          drawing = true;
+          const pos = getMousePos(canvas, e);
+          ctx.beginPath();
+          ctx.moveTo(pos.x, pos.y);
+        });
+        canvas.addEventListener("mousemove", (e) => {
+          if (!drawing) return;
+          const pos = getMousePos(canvas, e);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+        });
+        canvas.addEventListener("mouseup", () => drawing = false);
+        canvas.addEventListener("mouseleave", () => drawing = false);
+        
+        canvas.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          drawing = true;
+          const pos = getMousePos(canvas, e);
+          ctx.beginPath();
+          ctx.moveTo(pos.x, pos.y);
+        }, { passive: false });
+        canvas.addEventListener("touchmove", (e) => {
+          e.preventDefault();
+          if (!drawing) return;
+          const pos = getMousePos(canvas, e);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+        }, { passive: false });
+        canvas.addEventListener("touchend", () => drawing = false);
+        
+        signBtn.addEventListener("click", () => {
+          // Clear previous canvas drawing
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          signModal.classList.remove("hidden");
+          const menuBtn = document.getElementById("secondaryToolbarToggleButton");
+          if (menuBtn && menuBtn.getAttribute("aria-expanded") === "true") {
+            menuBtn.click();
+          }
+        });
+        
+        clearBtn.addEventListener("click", () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+        
+        cancelBtn.addEventListener("click", () => {
+          signModal.classList.add("hidden");
+        });
+        
+        saveBtn.addEventListener("click", async () => {
+          const dataUrl = canvas.toDataURL("image/png");
+          signModal.classList.add("hidden");
+          
+          const pageIndex = PDFViewerApplication.page - 1;
+          const pageView = PDFViewerApplication.pdfViewer.getPageView(pageIndex);
+          if (pageView && pageView.annotationEditorLayer) {
+            try {
+              const editorLayer = pageView.annotationEditorLayer.annotationEditorLayer;
+              if (editorLayer) {
+                const blob = dataURLtoBlob(dataUrl);
+                const file = new File([blob], "signature.png", { type: "image/png" });
+                
+                PDFViewerApplication.pdfViewer.annotationEditorMode = { mode: AnnotationEditorType.STAMP };
+                
+                await editorLayer.pasteEditor({
+                  mode: AnnotationEditorType.STAMP
+                }, {
+                  bitmapFile: file
+                });
+                showToast("Signature placed! You can move and resize it.");
+              }
+            } catch (err) {
+              console.error("Error placing signature stamp:", err);
+              showToast("Error placing signature");
+            }
+          } else {
+            showToast("Please wait until the page is fully rendered.");
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Custom Signature Pad:", e);
+    }
+
+    // --- 3. Merge PDF ---
+    try {
+      const mergeBtn = document.getElementById("mergePdfBtn");
+      if (mergeBtn) {
+        mergeBtn.addEventListener("click", () => {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = "application/pdf";
+          input.style.display = "none";
+          
+          input.addEventListener("change", async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+              const otherPdfBytes = new Uint8Array(evt.target.result);
+              const pdfDoc = PDFViewerApplication.pdfDocument;
+              if (!pdfDoc) return;
+              
+              showToast("Merging PDFs...");
+              try {
+                const numPagesCurrent = pdfDoc.numPages;
+                const includePagesCurrent = [];
+                for (let i = 0; i < numPagesCurrent; i++) includePagesCurrent.push(i);
+                
+                const pageInfos = [
+                  { document: null, includePages: includePagesCurrent },
+                  { document: otherPdfBytes }
+                ];
+                
+                const mergedPdfBytes = await pdfDoc.extractPages(pageInfos);
+                const currentPage = PDFViewerApplication.page;
+                
+                await PDFViewerApplication.open({
+                  data: mergedPdfBytes,
+                  originalUrl: PDFViewerApplication.url
+                });
+                
+                setTimeout(() => {
+                  PDFViewerApplication.page = currentPage;
+                }, 300);
+                
+                showToast("PDF files merged successfully!");
+              } catch (err) {
+                console.error("Error merging PDFs:", err);
+                showToast("Error merging: " + err.message);
+              }
+            };
+            reader.readAsArrayBuffer(file);
+          });
+          
+          document.body.appendChild(input);
+          input.click();
+          document.body.removeChild(input);
+          
+          const menuBtn = document.getElementById("secondaryToolbarToggleButton");
+          if (menuBtn && menuBtn.getAttribute("aria-expanded") === "true") {
+            menuBtn.click();
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Merge PDF:", e);
+    }
+
+    // --- 4. Watermarking ---
+    try {
+      const watermarkBtn = document.getElementById("watermarkBtn");
+      const watermarkModal = document.getElementById("customWatermarkModal");
+      const cancelWatermarkBtn = document.getElementById("cancelWatermarkBtn");
+      const applyWatermarkBtn = document.getElementById("applyWatermarkBtn");
+      
+      if (watermarkBtn && watermarkModal && cancelWatermarkBtn && applyWatermarkBtn) {
+        watermarkBtn.addEventListener("click", () => {
+          watermarkModal.classList.remove("hidden");
+          const menuBtn = document.getElementById("secondaryToolbarToggleButton");
+          if (menuBtn && menuBtn.getAttribute("aria-expanded") === "true") {
+            menuBtn.click();
+          }
+        });
+        
+        cancelWatermarkBtn.addEventListener("click", () => {
+          watermarkModal.classList.add("hidden");
+        });
+        
+        applyWatermarkBtn.addEventListener("click", async () => {
+          const text = document.getElementById("watermarkText").value.trim();
+          const fontSize = parseInt(document.getElementById("watermarkFontSize").value, 10);
+          const color = document.getElementById("watermarkColor").value;
+          const opacity = parseFloat(document.getElementById("watermarkOpacity").value);
+          const angle = parseInt(document.getElementById("watermarkAngle").value, 10);
+          
+          if (!text) {
+            showToast("Watermark text cannot be empty.");
+            return;
+          }
+          
+          watermarkModal.classList.add("hidden");
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          
+          showToast("Applying watermark to all pages...");
+          try {
+            const numPages = pdfDoc.numPages;
+            const annotationStorage = pdfDoc.annotationStorage;
+            
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            
+            for (let pageIndex = 0; pageIndex < numPages; pageIndex++) {
+              const page = await pdfDoc.getPage(pageIndex + 1);
+              const [, , pageWidth, pageHeight] = page.view;
+              
+              const width = pageWidth * 0.8;
+              const height = fontSize * 1.5;
+              const x1 = (pageWidth - width) / 2;
+              const y1 = (pageHeight - height) / 2;
+              const x2 = x1 + width;
+              const y2 = y1 + height;
+              
+              const annotId = `pdfjs_internal_editor_watermark_${pageIndex}_${Date.now()}`;
+              
+              const detail = {
+                annotationType: 3, // FreeText
+                pageIndex: pageIndex,
+                rect: [x1, y1, x2, y2],
+                rotation: angle === -45 ? 270 : 0, // Fallback to 0/90/180/270 for valid rotation values
+                color: [r, g, b],
+                fontSize: fontSize,
+                value: text
+              };
+              
+              annotationStorage.setValue(annotId, detail);
+            }
+            
+            PDFViewerApplication._annotationStorageModified = true;
+            showToast("Saving watermarked document...");
+            const watermarkedBytes = await PDFViewerApplication.save();
+            
+            await PDFViewerApplication.open({
+              data: watermarkedBytes,
+              originalUrl: PDFViewerApplication.url
+            });
+            
+            showToast("Watermark applied successfully!");
+          } catch (err) {
+            console.error("Error applying watermark:", err);
+            showToast("Error watermarking: " + err.message);
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Watermark:", e);
+    }
+
+    // --- 5. Export Pages as Images ---
+    try {
+      const exportImagesBtn = document.getElementById("exportImagesBtn");
+      if (exportImagesBtn) {
+        exportImagesBtn.addEventListener("click", async () => {
+          const pdfDoc = PDFViewerApplication.pdfDocument;
+          if (!pdfDoc) return;
+          
+          const pageIndex = PDFViewerApplication.page;
+          showToast(`Exporting page ${pageIndex} as image...`);
+          try {
+            const page = await pdfDoc.getPage(pageIndex);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement("canvas");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext("2d");
+            
+            await page.render({
+              canvasContext: ctx,
+              viewport: viewport
+            }).promise;
+            
+            const dataUrl = canvas.toDataURL("image/png");
+            const a = document.createElement("a");
+            const filename = PDFViewerApplication._docFilename || "document";
+            const base = filename.replace(/\.pdf$/i, "");
+            a.href = dataUrl;
+            a.download = `${base}_page_${pageIndex}.png`;
+            a.click();
+            showToast("Page exported successfully!");
+          } catch (err) {
+            console.error("Error exporting image:", err);
+            showToast("Error exporting: " + err.message);
+          }
+          
+          const menuBtn = document.getElementById("secondaryToolbarToggleButton");
+          if (menuBtn && menuBtn.getAttribute("aria-expanded") === "true") {
+            menuBtn.click();
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Freedom PDF Viewer: Error initializing Export Images:", e);
+    }
   });
 }
 

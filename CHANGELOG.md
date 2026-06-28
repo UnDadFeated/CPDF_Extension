@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.6.2] — 2026-06-28
+
+### Added
+- **⚙️ Advanced Offline PDF Features:** Implemented true page reordering, page deletion via thumbnail controls, electronic signing pad canvas, PDF document merging, watermarking, and single-page image export.
+
 ## [3.6.1] — 2026-06-10
 
 ### Added
