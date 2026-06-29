@@ -156,14 +156,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'fetchPdf') {
     fetch(message.url)
       .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         // Enforce a size limit to prevent background service worker OOM crashes.
         // Chrome limits service worker heap size to ~100-200MB.
         const len = parseInt(response.headers.get('content-length') || '0', 10);
         if (len > 50 * 1024 * 1024) { // 50 MB cap
           throw new Error('PDF file is too large to proxy (>50 MB). Please open the URL directly or download it.');
-        }
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.arrayBuffer();
       })

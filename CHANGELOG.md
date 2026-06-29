@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.4] — 2026-06-28
+
+### Fixed
+- **🔴 High - File Scheme Permission Check Fallback**: Restored `chrome.extension.isAllowedFileSchemeAccess` with an optimistic fallback to fix the warning card permanently hidden regression.
+- **🟡 Medium - Proxy HTTP Status Guard**: Checked `response.ok` before evaluating size limits in the background `fetchPdf` handler to avoid throwing a size limit error on large error pages.
+- **🟢 Low - Reliable File Picker Launch**: Replaced the fragile `setTimeout` race window with a robust event listener for the custom `pdfviewerinitialised` event.
+
 ## [3.6.3] — 2026-06-28
 
 ### Added

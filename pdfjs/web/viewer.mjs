@@ -17637,6 +17637,9 @@ const PDFViewerApplication = {
     } else {
       this._hideViewBookmark();
     }
+    eventBus.dispatch("pdfviewerinitialised", {
+      source: this
+    });
   },
   get externalServices() {
     return shadow(this, "externalServices", new ExternalServices());
@@ -21069,9 +21072,9 @@ function webViewerLoad() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("openLocal") === "true") {
-        setTimeout(() => {
+        PDFViewerApplication.eventBus._on("pdfviewerinitialised", () => {
           PDFViewerApplication.eventBus.dispatch("openfile");
-        }, 500);
+        }, { once: true });
       }
     } catch (e) {
       console.error("Freedom PDF Viewer: Error checking openLocal param:", e);
