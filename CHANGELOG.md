@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.5] — 2026-08-16
+
+### Fixed
+- **Modal Dismissal Controls:** Added backdrop click listener and `Escape` key shortcut support to effortlessly close the Electronic Signature and Watermark modals.
+- **Robust Local Open Trigger:** Switched `openLocal` handler to public `eventBus.on` and added an immediate initialization fallback to prevent potential race condition hangs when launching via `openLocal=true` or `open=true`.
+- **Integration Test Version Sync:** Synchronized `test_runner.html` headers with the release version.
+
 ## [3.6.4] — 2026-06-28
 
 ### Fixed

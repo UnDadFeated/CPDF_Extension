@@ -20543,6 +20543,24 @@ function webViewerLoad() {
     // --- Keyboard Shortcuts (Global Capture Phase) ---
     try {
       window.addEventListener("keydown", (e) => {
+        // Escape -> Close custom modals if open
+        if (e.key === "Escape") {
+          const signModal = document.getElementById("customSignatureModal");
+          if (signModal && !signModal.classList.contains("hidden")) {
+            signModal.classList.add("hidden");
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          const wmModal = document.getElementById("customWatermarkModal");
+          if (wmModal && !wmModal.classList.contains("hidden")) {
+            wmModal.classList.add("hidden");
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+        }
+
         if (!e.ctrlKey) return;
 
         const key = e.key.toLowerCase();
@@ -20830,6 +20848,12 @@ function webViewerLoad() {
           signModal.classList.add("hidden");
         });
         
+        signModal.addEventListener("click", (e) => {
+          if (e.target === signModal) {
+            signModal.classList.add("hidden");
+          }
+        });
+        
         saveBtn.addEventListener("click", async () => {
           const dataUrl = canvas.toDataURL("image/png");
           signModal.classList.add("hidden");
@@ -20949,6 +20973,12 @@ function webViewerLoad() {
         
         cancelWatermarkBtn.addEventListener("click", () => {
           watermarkModal.classList.add("hidden");
+        });
+        
+        watermarkModal.addEventListener("click", (e) => {
+          if (e.target === watermarkModal) {
+            watermarkModal.classList.add("hidden");
+          }
         });
         
         applyWatermarkBtn.addEventListener("click", async () => {
@@ -21071,10 +21101,17 @@ function webViewerLoad() {
     // Check if the URL has ?openLocal=true or ?open=true, and trigger the file picker
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("openLocal") === "true") {
-        PDFViewerApplication.eventBus._on("pdfviewerinitialised", () => {
+      if (urlParams.get("openLocal") === "true" || urlParams.get("open") === "true") {
+        let triggered = false;
+        const triggerOpenFile = () => {
+          if (triggered) return;
+          triggered = true;
           PDFViewerApplication.eventBus.dispatch("openfile");
-        }, { once: true });
+        };
+        PDFViewerApplication.eventBus.on("pdfviewerinitialised", triggerOpenFile, { once: true });
+        if (PDFViewerApplication._openFileInput) {
+          triggerOpenFile();
+        }
       }
     } catch (e) {
       console.error("Freedom PDF Viewer: Error checking openLocal param:", e);
