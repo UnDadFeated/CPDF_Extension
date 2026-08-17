@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.6.6] — 2026-08-17
+
+### Fixed
+- **Ctrl+F Search:** Removed the capture-phase keyboard hijack that sent Ctrl+F to fullscreen; Ctrl+F now opens the native PDF.js find bar. Fullscreen moved to Ctrl+Shift+F (toolbar button hints updated to match).
+- **Fullscreen Event Wiring:** The `toggleFullscreen` event handler now targets the real `leftFsToggleBtn` control (the referenced `fsToggleBtn` element does not exist), so keyboard-triggered fullscreen actually works.
+- **Context Menu Recreate:** `onInstalled` now clears existing context menus before creating, fixing a "menu item already exists" failure on extension updates.
+- **Watermark Apply Flow:** `save()` returns no bytes, so the post-watermark reopen was receiving `data: undefined` and failing (error overlay after the file downloaded). Now the document is serialized directly via `saveDocument()`, downloaded as `<name>_watermarked.pdf`, and reopened with real bytes; the modified flag is cleared first so `open() → close()` no longer triggers a duplicate save/download.
+- **Watermark Opacity:** The opacity slider was read but never applied (FreeText annotations have no opacity parameter). It is now baked into the text color using the same blend as pdf.js's `applyOpacity`. Empty/invalid font size, opacity, and angle inputs now fall back to defaults instead of producing NaN rects.
+- **Search Localization:** Restored the `en-US` find bar strings so a no-match search shows "Phrase not found" instead of a raw localization key.
+
+### Changed
+- **Deduplicated Keyboard Shortcuts:** Removed Ctrl+B / Ctrl+D from the custom capture-phase handler — the native viewer already binds both (bookmark / delete annotation), eliminating double-fire risk.
+- **Single-Page View:** Replaced per-page inline styles with a `singlePageMode` CSS class so lazily rendered pages style correctly; previous scroll/spread mode is now saved and restored on exit.
+- **Auto-Hide Toolbar:** Global `mousemove`/`keydown` listeners are now only attached while auto-hide is enabled, removing constant event overhead.
+
+### Cleanup
+- **Dead Code:** Removed the never-read `_pageReorderEnabled` flag and the unused `window._ttsUtterance` global.
+- **Auto-Save Hook:** `setupAutoSaveHook` is now guarded against double-wrapping — it was invoked from both the patched `_initializeAnnotationStorageCallbacks` and the `documentloaded` event, doubling the modification counter.
+- **Bookmarks Tooltip:** The bookmarks panel toggle no longer advertises Ctrl+B (that shortcut adds a bookmark for the current page).
+
 ## [3.6.5] — 2026-08-16
 
 ### Fixed

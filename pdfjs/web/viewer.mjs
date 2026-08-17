@@ -18436,7 +18436,7 @@ const PDFViewerApplication = {
     eventBus._on("save", this.save.bind(this), opts);
     eventBus._on("download", this.downloadOrSave.bind(this), opts);
     eventBus._on("toggleFullscreen", (evt) => {
-      const fsBtn = document.getElementById("fsToggleBtn");
+      const fsBtn = document.getElementById("leftFsToggleBtn") || document.getElementById("fsToggleBtn");
       if (fsBtn) fsBtn.click();
     }, opts);
     eventBus._on("firstpage", () => this.page = 1, opts);
@@ -19002,6 +19002,11 @@ function onKeyDown(evt) {
         if (!this.supportsIntegratedFind && !evt.shiftKey) {
           this.findBar?.open();
           handled = true;
+        } else if (!this.supportsIntegratedFind && evt.shiftKey) {
+          eventBus.dispatch("toggleFullscreen", {
+            source: window
+          });
+          handled = true;
         }
         break;
       case 71:
@@ -19075,14 +19080,6 @@ function onKeyDown(evt) {
           action: "delete"
         });
         handled = true;
-        break;
-      case 70:
-        if (!this.supportsIntegratedFind && !evt.shiftKey) {
-          eventBus.dispatch("toggleFullscreen", {
-            source: window
-          });
-          handled = true;
-        }
         break;
       case 79:
         {
@@ -19562,7 +19559,7 @@ function webViewerLoad() {
   //   6. Fullscreen toggle button
   //   7. Bookmarks (localStorage, sidebar panel)
   //   8. Page extraction
-  //   9. Page reordering (visual, thumbnails)
+  //   9. Page reordering (thumbnails, written back to the PDF)
   //  10. Theme cycling (Light / Dark / Sepia / Night)
   //  11. Single-page view
   //  12. Auto-hide toolbar
@@ -19683,7 +19680,8 @@ function webViewerLoad() {
       };
 
       const setupAutoSaveHook = (annotStorage) => {
-        if (!annotStorage) return;
+        if (!annotStorage || annotStorage._freedomAutoSaveHooked) return;
+        annotStorage._freedomAutoSaveHooked = true;
         const origOnSetModified = annotStorage.onSetModified;
         annotStorage.onSetModified = () => {
           if (origOnSetModified) origOnSetModified();
@@ -19758,10 +19756,10 @@ function webViewerLoad() {
         if (fsBtn) {
           fsBtn.classList.toggle("toggled", isFullscreen);
           if (isFullscreen) {
-            fsBtn.title = "Exit fullscreen (Ctrl+F)";
+            fsBtn.title = "Exit fullscreen (Ctrl+Shift+F)";
             fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Exit Fullscreen</span>';
           } else {
-            fsBtn.title = "Toggle fullscreen (Ctrl+F)";
+            fsBtn.title = "Toggle fullscreen (Ctrl+Shift+F)";
             fsBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Fullscreen</span>';
           }
         }
@@ -20024,7 +20022,6 @@ function webViewerLoad() {
     try {
       const thumbsView = document.getElementById("thumbnailsView");
       if (thumbsView) {
-        PDFViewerApplication.pdfViewer._pageReorderEnabled = true;
         PDFViewerApplication.pdfViewer._draggedThumb = null;
         thumbsView.addEventListener("dragstart", (e) => {
           const thumb = e.target.closest(".thumbnail");
@@ -20164,7 +20161,7 @@ function webViewerLoad() {
     // --- Single-page view ---
     try {
       let _singlePageMode = false;
-      
+      let _prevViewMode = null;
       const updateSinglePageUI = (enabled) => {
         const secBtn = document.getElementById("secondarySinglePageBtn");
         const leftBtn = document.getElementById("leftSinglePageBtn");
@@ -20173,31 +20170,25 @@ function webViewerLoad() {
       };
 
       const toggleSinglePage = () => {
+        const viewer = PDFViewerApplication.pdfViewer;
+        const outer = document.getElementById("outerContainer");
         _singlePageMode = !_singlePageMode;
-        updateSinglePageUI(_singlePageMode);
         if (_singlePageMode) {
-          PDFViewerApplication.pdfViewer.scrollMode = 0; // VERTICAL
-          PDFViewerApplication.pdfViewer.spreadMode = 0; // NONE
-          const pages = document.querySelectorAll(".page");
-          pages.forEach(p => {
-            p.style.maxWidth = "95vw";
-            p.style.marginTop = "20px";
-            p.style.marginBottom = "20px";
-          });
+          _prevViewMode = { scrollMode: viewer.scrollMode, spreadMode: viewer.spreadMode };
+          viewer.scrollMode = 0; // VERTICAL
+          viewer.spreadMode = 0; // NONE
+          outer?.classList.add("singlePageMode");
           showToast("Single page mode");
         } else {
-          const savedZoom = safeStorage.getItem("freedom.pdf.zoom");
-          const pages = document.querySelectorAll(".page");
-          pages.forEach(p => {
-            p.style.maxWidth = "";
-            p.style.marginTop = "";
-            p.style.marginBottom = "";
-          });
-          if (savedZoom) {
-            PDFViewerApplication.pdfViewer.scrollMode = 0;
+          outer?.classList.remove("singlePageMode");
+          if (_prevViewMode) {
+            viewer.scrollMode = _prevViewMode.scrollMode;
+            viewer.spreadMode = _prevViewMode.spreadMode;
+            _prevViewMode = null;
           }
           showToast("Multi-page mode");
         }
+        updateSinglePageUI(_singlePageMode);
       };
 
       const secondarySinglePageBtn = document.getElementById("secondarySinglePageBtn");
@@ -20333,6 +20324,17 @@ function webViewerLoad() {
           }, 3000);
         };
 
+        const onDocActivity = () => resetAutoHideTimer();
+        const setAutoHideListeners = (enabled) => {
+          if (enabled) {
+            document.addEventListener("mousemove", onDocActivity, { capture: true });
+            document.addEventListener("keydown", onDocActivity, { capture: true });
+          } else {
+            document.removeEventListener("mousemove", onDocActivity, { capture: true });
+            document.removeEventListener("keydown", onDocActivity, { capture: true });
+          }
+        };
+
         const toggleAutoHide = () => {
           autoHideEnabled = !autoHideEnabled;
           safeStorage.setItem("freedom.pdf.autohide", autoHideEnabled.toString());
@@ -20343,9 +20345,11 @@ function webViewerLoad() {
           if (leftBtn) leftBtn.classList.toggle("toggled", autoHideEnabled);
 
           if (autoHideEnabled) {
+            setAutoHideListeners(true);
             resetAutoHideTimer();
             showToast("Auto-hide ON");
           } else {
+            setAutoHideListeners(false);
             if (autoHideTimeout) clearTimeout(autoHideTimeout);
             isMouseOverToolbar = false;
             setToolbarVisibility(true);
@@ -20379,6 +20383,7 @@ function webViewerLoad() {
         });
 
         if (autoHideEnabled) {
+          setAutoHideListeners(true);
           toolbar.style.transition = "opacity 0.3s ease";
           toolbar.style.opacity = "0";
           setTimeout(() => {
@@ -20387,9 +20392,6 @@ function webViewerLoad() {
             }
           }, 300);
         }
-        
-        document.addEventListener("mousemove", resetAutoHideTimer, { capture: true });
-        document.addEventListener("keydown", resetAutoHideTimer, { capture: true });
       }
     } catch (e) {
       console.error("Freedom PDF Viewer: Error initializing auto-hide toolbar:", e);
@@ -20424,7 +20426,6 @@ function webViewerLoad() {
           _currentUtterance.onend = null;
           _currentUtterance = null;
         }
-        window._ttsUtterance = null;
         updateSpeechButtons(false);
       };
 
@@ -20447,8 +20448,6 @@ function webViewerLoad() {
             window.speechSynthesis.cancel();
             _currentUtterance = new SpeechSynthesisUtterance(text);
             _currentUtterance.rate = 1;
-            
-            window._ttsUtterance = _currentUtterance;
             
             _currentUtterance.onend = () => {
               if (_reading && PDFViewerApplication.page === pageNumber) {
@@ -20565,32 +20564,12 @@ function webViewerLoad() {
 
         const key = e.key.toLowerCase();
         
-        // Ctrl+F -> Fullscreen Toggle
-        if (key === "f") {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleFullscreen();
-        }
         // Ctrl+H -> Hide Toolbar
-        else if (key === "h") {
+        if (key === "h") {
           e.preventDefault();
           e.stopPropagation();
           const hideToolbarBtn = document.getElementById("leftHideToolbarBtn");
           if (hideToolbarBtn) hideToolbarBtn.click();
-        }
-        // Ctrl+B -> Add Bookmark
-        else if (key === "b") {
-          e.preventDefault();
-          e.stopPropagation();
-          const bMarkBtn = document.getElementById("addBookmarkBtn");
-          if (bMarkBtn) bMarkBtn.click();
-        }
-        // Ctrl+D -> Delete Selected Annotation
-        else if (key === "d") {
-          e.preventDefault();
-          e.stopPropagation();
-          const deleteBtn = document.getElementById("deleteButton");
-          if (deleteBtn) deleteBtn.click();
         }
         // Ctrl+1 -> Single Page Toggle
         else if (key === "1") {
@@ -20983,10 +20962,10 @@ function webViewerLoad() {
         
         applyWatermarkBtn.addEventListener("click", async () => {
           const text = document.getElementById("watermarkText").value.trim();
-          const fontSize = parseInt(document.getElementById("watermarkFontSize").value, 10);
-          const color = document.getElementById("watermarkColor").value;
-          const opacity = parseFloat(document.getElementById("watermarkOpacity").value);
-          const angle = parseInt(document.getElementById("watermarkAngle").value, 10);
+          const fontSize = parseInt(document.getElementById("watermarkFontSize").value, 10) || 60;
+          const color = document.getElementById("watermarkColor").value || "#ff0000";
+          const opacity = Math.min(1, Math.max(0.1, parseFloat(document.getElementById("watermarkOpacity").value) || 0.3));
+          const angle = parseInt(document.getElementById("watermarkAngle").value, 10) || -45;
           
           if (!text) {
             showToast("Watermark text cannot be empty.");
@@ -21002,9 +20981,12 @@ function webViewerLoad() {
             const numPages = pdfDoc.numPages;
             const annotationStorage = pdfDoc.annotationStorage;
             
-            const r = parseInt(color.slice(1, 3), 16);
-            const g = parseInt(color.slice(3, 5), 16);
-            const b = parseInt(color.slice(5, 7), 16);
+            // FreeText annotations have no opacity parameter, so bake the
+            // requested opacity into the color (same blend as pdf.js's applyOpacity).
+            const blend = (c) => Math.round(c * opacity + 255 * (1 - opacity));
+            const r = blend(parseInt(color.slice(1, 3), 16));
+            const g = blend(parseInt(color.slice(3, 5), 16));
+            const b = blend(parseInt(color.slice(5, 7), 16));
             
             for (let pageIndex = 0; pageIndex < numPages; pageIndex++) {
               const page = await pdfDoc.getPage(pageIndex + 1);
@@ -21032,10 +21014,26 @@ function webViewerLoad() {
               annotationStorage.setValue(annotId, detail);
             }
             
-            PDFViewerApplication._annotationStorageModified = true;
+            // PDFViewerApplication.save() triggers the download but returns no
+            // bytes, so serialize directly to get the data for the reopen below.
             showToast("Saving watermarked document...");
-            const watermarkedBytes = await PDFViewerApplication.save();
-            
+            const watermarkedBytes = await pdfDoc.saveDocument();
+
+            // The download below is the only save, so clear the modified flag
+            // to prevent open() -> close() from triggering a duplicate save.
+            window.removeEventListener("beforeunload", beforeUnload);
+            delete PDFViewerApplication._annotationStorageModified;
+
+            const blob = new Blob([watermarkedBytes], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            const filename = PDFViewerApplication._docFilename || "document";
+            const base = filename.replace(/\.pdf$/i, "");
+            a.href = url;
+            a.download = `${base}_watermarked.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+
             await PDFViewerApplication.open({
               data: watermarkedBytes,
               originalUrl: PDFViewerApplication.url

@@ -9051,6 +9051,13 @@ body[data-pdfjsprinting] #printContainer {
   --toolbar-height: 0px !important;
 }
 
+/* Single-page view: centered page with generous margins (class toggled by custom extensions) */
+#outerContainer.singlePageMode .page {
+  max-width: 95vw;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 /* Fullscreen Mode override - hide left vertical toolbar to maximize screen real estate */
 #outerContainer.fullscreenMode #leftVerticalToolbar {
   display: none !important;

@@ -110,18 +110,22 @@ chrome.runtime.onInstalled.addListener(() => {
   // NOTE: Chrome context menu targetUrlPatterns are glob-only and case-sensitive.
   // We can't match case-insensitive extensions (.PDF, .Pdf) without regex, which is
   // not supported here. The webNavigation filter handles all intercept cases anyway.
-  chrome.contextMenus.create({
-    id: 'open-with-freedom-pdf',
-    title: 'Open with Freedom PDF Viewer',
-    contexts: ['link'],
-    targetUrlPatterns: [
-      '*://*/**.pdf',
-      '*://*/**.pdf?*',
-      '*://*/**.pdf#*',
-      'file:///*.pdf',
-      'file:///*.pdf?*',
-      'file:///*.pdf#*'
-    ]
+  // removeAll first: onInstalled also fires on "update", where the menu
+  // item from the previous install already exists and create() would throw.
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'open-with-freedom-pdf',
+      title: 'Open with Freedom PDF Viewer',
+      contexts: ['link'],
+      targetUrlPatterns: [
+        '*://*/**.pdf',
+        '*://*/**.pdf?*',
+        '*://*/**.pdf#*',
+        'file:///*.pdf',
+        'file:///*.pdf?*',
+        'file:///*.pdf#*'
+      ]
+    });
   });
 });
 
